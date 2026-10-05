@@ -300,8 +300,12 @@ export async function fetchBookByIsbn(rawIsbn) {
   const ageGroup = gbData?.ageGroup || olData?.ageGroup || offlineData?.ageGroup || 'Všeobecná veřejnost';
   const language = gbData?.language || olData?.language || offlineData?.language || 'Čeština';
 
-  // Cover fallback order
-  let cover = gbData?.cover || olData?.cover || offlineData?.cover || `https://covers.openlibrary.org/b/isbn/${cleanIsbn}-L.jpg`;
+  // Cover fallback priority across multiple sources:
+  // 1. Google Books cover
+  // 2. Open Library cover
+  // 3. ObálkyKnih (obalkyknih.cz - widely used Czech book cover provider)
+  // 4. Open Library ISBN direct link
+  let cover = gbData?.cover || olData?.cover || offlineData?.cover || `https://www.obalkyknih.cz/file/cover/${cleanIsbn}/medium`;
 
   return {
     id: `${cleanIsbn}-${Date.now()}`,
@@ -315,6 +319,7 @@ export async function fetchBookByIsbn(rawIsbn) {
     ageGroup: ageGroup,
     language: language,
     cover: cover,
+    fallbackCover: `https://covers.openlibrary.org/b/isbn/${cleanIsbn}-L.jpg`,
     scannedAt: new Date().toISOString(),
   };
 }

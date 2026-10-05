@@ -20,9 +20,6 @@ export default function App() {
   const [scannedBookResult, setScannedBookResult] = useState(null); // { book, searched: bool }
   const [selectedBookForDetail, setSelectedBookForDetail] = useState(null);
 
-  // Debug state to show live raw barcode and parsed ISBN feedback
-  const [lastScanDebug, setLastScanDebug] = useState(null); // { raw: string, isbn: string, time: string }
-
   // Load saved books from localStorage on mount
   useEffect(() => {
     const saved = getSavedBooks();
@@ -33,12 +30,6 @@ export default function App() {
   const handleLookupIsbn = async (rawInput) => {
     const cleanIsbn = normalizeIsbn(rawInput) || rawInput;
     const formatted = formatIsbnDisplay(cleanIsbn);
-
-    setLastScanDebug({
-      raw: String(rawInput),
-      isbn: formatted || cleanIsbn,
-      time: new Date().toLocaleTimeString('cs-CZ'),
-    });
 
     setIsScannerOpen(false);
     setIsManualInputOpen(false);
@@ -108,8 +99,6 @@ export default function App() {
         onStartScan={() => setIsScannerOpen(true)}
         onOpenManualInput={() => setIsManualInputOpen(true)}
         libraryCount={libraryBooks.length}
-        lastScanDebug={lastScanDebug}
-        onClearDebug={() => setLastScanDebug(null)}
       />
 
       {/* Barcode Scanner Viewfinder Modal */}

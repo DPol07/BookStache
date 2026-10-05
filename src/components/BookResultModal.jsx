@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, BookmarkPlus, RotateCcw, Book, Calendar, Building2, Tag, Users, Globe, Hash, AlertTriangle, RefreshCw, CheckCircle2 } from 'lucide-react';
 
 export default function BookResultModal({
@@ -11,7 +11,14 @@ export default function BookResultModal({
   onOpenManualInput,
 }) {
   const [imageError, setImageError] = useState(false);
+  const [useFallback, setUseFallback] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
+
+  useEffect(() => {
+    setImageError(false);
+    setUseFallback(false);
+    setIsSaved(false);
+  }, [book]);
 
   if (!isOpen) return null;
 
@@ -53,7 +60,7 @@ export default function BookResultModal({
 
           <h3 className="text-xl font-bold text-white mb-2">Kniha nebyla nalezena</h3>
           <p className="text-xs text-slate-400 max-w-xs mx-auto mb-6 leading-relaxed">
-            Podle naskenovaného kódu se v dostupných katalozích nepodařilo najít žádné informace o knize. Některé starší knihy nemají čárový kód nebo mají odlišný formát.
+            Podle naskenovaného kódu se v dostupných katalozích nepodařilo najít žádné informace o kniye. Některé starší knihy nemají čárový kód nebo mají odlišný formát.
           </p>
 
           <div className="space-y-3">
@@ -80,6 +87,17 @@ export default function BookResultModal({
     );
   }
 
+  // Handle Cover Image Error
+  const handleImageError = () => {
+    if (!useFallback && book.fallbackCover && book.cover !== book.fallbackCover) {
+      setUseFallback(true);
+    } else {
+      setImageError(true);
+    }
+  };
+
+  const currentCoverUrl = useFallback ? book.fallbackCover : book.cover;
+
   // Book Found State
   const handleSave = () => {
     setIsSaved(true);
@@ -102,20 +120,27 @@ export default function BookResultModal({
         <div className="overflow-y-auto p-5 space-y-5">
           {/* Cover & Hero Section */}
           <div className="flex flex-col sm:flex-row gap-4 items-center sm:items-start text-center sm:text-left pt-2">
-            {/* Book Cover */}
+            {/* Book Cover / Placeholder */}
             <div className="relative w-28 h-40 shrink-0 bg-slate-800 rounded-xl overflow-hidden border border-slate-700/80 shadow-lg flex items-center justify-center">
-              {book.cover && !imageError ? (
+              {currentCoverUrl && !imageError ? (
                 <img
-                  src={book.cover}
+                  src={currentCoverUrl}
                   alt={book.title}
-                  onError={() => setImageError(true)}
+                  onError={handleImageError}
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <div className="flex flex-col items-center justify-center p-2 text-center text-slate-400 gap-1.5 w-full h-full bg-gradient-to-br from-slate-800 to-slate-900 border border-amber-500/20">
-                  <Book className="w-8 h-8 text-amber-400 mb-1" />
-                  <span className="text-[10px] font-bold text-amber-300 leading-tight line-clamp-3 px-1">{book.title}</span>
-                  <span className="text-[9px] text-slate-400 truncate max-w-full px-1">{book.author}</span>
+                <div className="flex flex-col items-center justify-between p-3 text-center text-slate-300 w-full h-full bg-gradient-to-br from-slate-900 via-slate-800 to-amber-950/40 border border-amber-500/30">
+                  <div className="p-1.5 bg-amber-500/20 rounded-full text-amber-400 mt-2">
+                    <Book className="w-6 h-6" />
+                  </div>
+                  <div className="space-y-1 my-auto">
+                    <span className="text-[10px] font-bold text-amber-300 leading-snug line-clamp-3 block px-1">{book.title}</span>
+                    <span className="text-[9px] text-slate-400 truncate max-w-full block px-1">{book.author}</span>
+                  </div>
+                  <span className="text-[8px] font-mono text-amber-500/70 border-t border-slate-700/60 pt-1 w-full truncate">
+                    {book.isbn}
+                  </span>
                 </div>
               )}
             </div>
