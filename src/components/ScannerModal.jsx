@@ -7,11 +7,13 @@ export default function ScannerModal({ isOpen, onClose, onScanSuccess, onOpenMan
   const [isInitializing, setIsInitializing] = useState(true);
   const html5QrcodeRef = useRef(null);
   const fileInputRef = useRef(null);
+  const isStoppingRef = useRef(false);
 
   useEffect(() => {
     if (!isOpen) return;
 
     let isMounted = true;
+    isStoppingRef.current = false;
     setIsInitializing(true);
     setScannerError(null);
 
@@ -30,7 +32,6 @@ export default function ScannerModal({ isOpen, onClose, onScanSuccess, onOpenMan
 
     const elementId = 'interactive-barcode-reader';
 
-    // Wait for DOM element
     const timer = setTimeout(async () => {
       try {
         const html5Qrcode = new Html5Qrcode(elementId);
@@ -39,14 +40,21 @@ export default function ScannerModal({ isOpen, onClose, onScanSuccess, onOpenMan
         await html5Qrcode.start(
           { facingMode: 'environment' },
           config,
-          (decodedText) => {
-            if (isMounted) {
-              // Stop camera and trigger callback
-              html5Qrcode.stop().then(() => {
+          async (decodedText) => {
+            if (!isMounted || isStoppingRef.current) return;
+            isStoppingRef.current = true;
+
+            // Safely stop scanner before invoking callback
+            try {
+              if (html5Qrcode.isScanning) {
+                await html5Qrcode.stop().catch(() => {});
+              }
+            } catch (err) {
+              console.warn('Scanner stop error:', err);
+            } finally {
+              if (isMounted) {
                 onScanSuccess(decodedText);
-              }).catch(() => {
-                onScanSuccess(decodedText);
-              });
+              }
             }
           },
           () => {
@@ -64,16 +72,21 @@ export default function ScannerModal({ isOpen, onClose, onScanSuccess, onOpenMan
           setScannerError('Není přístup k fotoaparátu nebo zařízení nemá aktivní kameru.');
         }
       }
-    }, 300);
+    }, 200);
 
     return () => {
       isMounted = false;
+      isStoppingRef.current = true;
       clearTimeout(timer);
       if (html5QrcodeRef.current) {
-        if (html5QrcodeRef.current.isScanning) {
-          html5QrcodeRef.current.stop().catch(() => {});
+        try {
+          if (html5QrcodeRef.current.isScanning) {
+            html5QrcodeRef.current.stop().catch(() => {});
+          }
+          html5QrcodeRef.current.clear().catch(() => {});
+        } catch (e) {
+          // Ignore cleanup errors
         }
-        html5QrcodeRef.current.clear().catch(() => {});
       }
     };
   }, [isOpen]);

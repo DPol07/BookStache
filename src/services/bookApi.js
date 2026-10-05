@@ -1,15 +1,21 @@
-// Book API service combining Google Books, Open Library, ObálkyKnih, and offline catalog fallback
+// Book API service combining Google Books, Open Library, ObálkyKnih, and fallback catalog
 
-// Helper to normalize ISBN
+// Helper to normalize ISBN / EAN barcode
 export function normalizeIsbn(isbn) {
   if (!isbn) return '';
-  return isbn.replace(/[^0-9X]/gi, '').toUpperCase();
+  const clean = String(isbn).replace(/[^0-9X]/gi, '').toUpperCase();
+  // Extract 13-digit EAN/ISBN starting with 978 or 979 if surrounded by noise
+  const match13 = clean.match(/(978|979)\d{10}/);
+  if (match13) return match13[0];
+  const match10 = clean.match(/\d{9}[0-9X]/);
+  if (match10) return match10[0];
+  return clean;
 }
 
-// Format ISBN for clean display
+// Format ISBN for display
 export function formatIsbnDisplay(isbn) {
   const clean = normalizeIsbn(isbn);
-  if (clean.length === 13 && clean.startsWith('978')) {
+  if (clean.length === 13 && (clean.startsWith('978') || clean.startsWith('979'))) {
     return `${clean.slice(0, 3)}-${clean.slice(3, 5)}-${clean.slice(5, 10)}-${clean.slice(10, 12)}-${clean.slice(12)}`;
   }
   return clean;
@@ -93,7 +99,7 @@ function inferAgeGroup(categories, title = '', description = '') {
   return 'Všeobecná veřejnost';
 }
 
-// Built-in offline backup catalog for high reliability
+// Built-in offline backup catalog
 const OFFLINE_CATALOG = {
   '9788000058825': {
     title: 'Harry Potter a Kámen mudrců',
@@ -169,7 +175,14 @@ async function fetchGoogleBooks(cleanIsbn) {
     const response = await fetch(`https://www.googleapis.com/books/v1/volumes?q=isbn:${cleanIsbn}`);
     if (!response.ok) return null;
     const data = await response.json();
-    if (!data.items || data.items.length === 0) return null;
+    if (!data.items || data.items.length === 0) {
+      // Try search query by raw string
+      const res2 = await fetch(`https://www.googleapis.com/books/v1/volumes?q=${cleanIsbn}`);
+      if (!res2.ok) return null;
+      const data2 = await res2.json();
+      if (!data2.items || data2.items.length === 0) return null;
+      data.items = data2.items;
+    }
 
     const info = data.items[0].volumeInfo;
     const year = info.publishedDate ? info.publishedDate.slice(0, 4) : '';
@@ -181,7 +194,7 @@ async function fetchGoogleBooks(cleanIsbn) {
       ? coverUrl.replace(/^http:/, 'https:').replace('&edge=curl', '')
       : null;
 
-    const lang = info.language ? (LANGUAGE_MAP[info.language.toLowerCase()] || info.language.toUpperCase()) : 'Nespecifikováno';
+    const lang = info.language ? (LANGUAGE_MAP[info.language.toLowerCase()] || info.language.toUpperCase()) : 'Čeština';
 
     return {
       title: info.title || '',
@@ -211,7 +224,7 @@ async function fetchOpenLibrary(cleanIsbn) {
 
     if (!book) {
       // Fallback to search API
-      const searchUrl = `https://openlibrary.org/search.json?isbn=${cleanIsbn}`;
+      const searchUrl = `https://openlibrary.org/search.json?q=${cleanIsbn}`;
       const sRes = await fetch(searchUrl);
       if (!sRes.ok) return null;
       const sData = await sRes.json();
@@ -224,7 +237,7 @@ async function fetchOpenLibrary(cleanIsbn) {
         publisher: doc.publisher ? doc.publisher[0] : '',
         genre: translateGenre(doc.subject),
         ageGroup: inferAgeGroup(doc.subject, doc.title),
-        language: doc.language ? (LANGUAGE_MAP[doc.language[0]] || doc.language[0]) : 'Nespecifikováno',
+        language: doc.language ? (LANGUAGE_MAP[doc.language[0]] || doc.language[0]) : 'Čeština',
         cover: doc.cover_i ? `https://covers.openlibrary.org/b/id/${doc.cover_i}-L.jpg` : `https://covers.openlibrary.org/b/isbn/${cleanIsbn}-L.jpg`,
       };
     }
@@ -241,7 +254,7 @@ async function fetchOpenLibrary(cleanIsbn) {
       cover = `https://covers.openlibrary.org/b/isbn/${cleanIsbn}-L.jpg`;
     }
 
-    const lang = book.languages ? (LANGUAGE_MAP[book.languages[0]?.key?.replace('/languages/', '')] || 'Čeština') : 'Nespecifikováno';
+    const lang = book.languages ? (LANGUAGE_MAP[book.languages[0]?.key?.replace('/languages/', '')] || 'Čeština') : 'Čeština';
 
     return {
       title: book.title || '',
@@ -262,7 +275,7 @@ async function fetchOpenLibrary(cleanIsbn) {
 // Primary Aggregator Function
 export async function fetchBookByIsbn(rawIsbn) {
   const cleanIsbn = normalizeIsbn(rawIsbn);
-  if (!cleanIsbn || cleanIsbn.length < 9) {
+  if (!cleanIsbn || cleanIsbn.length < 7) {
     return null;
   }
 
@@ -275,15 +288,11 @@ export async function fetchBookByIsbn(rawIsbn) {
   const gbData = gbResult.status === 'fulfilled' ? gbResult.value : null;
   const olData = olResult.status === 'fulfilled' ? olResult.value : null;
 
-  // 2. Check offline fallback if both failed or returned empty
+  // 2. Check offline catalog
   const offlineData = OFFLINE_CATALOG[cleanIsbn];
 
-  if (!gbData && !olData && !offlineData) {
-    return null;
-  }
-
   // Merge data prioritizing accuracy
-  const title = gbData?.title || olData?.title || offlineData?.title || '';
+  const title = gbData?.title || olData?.title || offlineData?.title || `Naskenovaná kniha (${formatIsbnDisplay(cleanIsbn)})`;
   const author = gbData?.author || olData?.author || offlineData?.author || 'Neznámý autor';
   const year = gbData?.year || olData?.year || offlineData?.year || 'Neuvedeno';
   const publisher = gbData?.publisher || olData?.publisher || offlineData?.publisher || 'Neuvedeno';
@@ -292,17 +301,13 @@ export async function fetchBookByIsbn(rawIsbn) {
   const language = gbData?.language || olData?.language || offlineData?.language || 'Čeština';
 
   // Cover fallback order
-  let cover = gbData?.cover || olData?.cover || offlineData?.cover || null;
-
-  if (!cover) {
-    cover = `https://covers.openlibrary.org/b/isbn/${cleanIsbn}-L.jpg`;
-  }
+  let cover = gbData?.cover || olData?.cover || offlineData?.cover || `https://covers.openlibrary.org/b/isbn/${cleanIsbn}-L.jpg`;
 
   return {
     id: `${cleanIsbn}-${Date.now()}`,
     isbn: formatIsbnDisplay(cleanIsbn),
     rawIsbn: cleanIsbn,
-    title: title || `Kniha (ISBN ${cleanIsbn})`,
+    title: title,
     author: author,
     year: year,
     publisher: publisher,
