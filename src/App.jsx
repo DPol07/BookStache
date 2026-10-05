@@ -7,7 +7,7 @@ import BookResultModal from './components/BookResultModal';
 import LibraryModal from './components/LibraryModal';
 import BookDetailModal from './components/BookDetailModal';
 
-import { fetchBookByIsbn } from './services/bookApi';
+import { fetchBookByIsbn, normalizeIsbn, formatIsbnDisplay } from './services/bookApi';
 import { getSavedBooks, saveBook, deleteBook } from './services/storage';
 
 export default function App() {
@@ -20,6 +20,9 @@ export default function App() {
   const [scannedBookResult, setScannedBookResult] = useState(null); // { book, searched: bool }
   const [selectedBookForDetail, setSelectedBookForDetail] = useState(null);
 
+  // Debug state to show live raw barcode and parsed ISBN feedback
+  const [lastScanDebug, setLastScanDebug] = useState(null); // { raw: string, isbn: string, time: string }
+
   // Load saved books from localStorage on mount
   useEffect(() => {
     const saved = getSavedBooks();
@@ -27,18 +30,43 @@ export default function App() {
   }, []);
 
   // Handle ISBN search (from scanner or manual entry)
-  const handleLookupIsbn = async (isbn) => {
+  const handleLookupIsbn = async (rawInput) => {
+    const cleanIsbn = normalizeIsbn(rawInput) || rawInput;
+    const formatted = formatIsbnDisplay(cleanIsbn);
+
+    setLastScanDebug({
+      raw: String(rawInput),
+      isbn: formatted || cleanIsbn,
+      time: new Date().toLocaleTimeString('cs-CZ'),
+    });
+
     setIsScannerOpen(false);
     setIsManualInputOpen(false);
     setIsLoadingBook(true);
-    setScannedBookResult({ book: null, searched: true });
 
     try {
-      const bookData = await fetchBookByIsbn(isbn);
+      const bookData = await fetchBookByIsbn(rawInput);
       setScannedBookResult({ book: bookData, searched: true });
     } catch (e) {
       console.error('Error fetching book:', e);
-      setScannedBookResult({ book: null, searched: true });
+      // Even if fetch throws an error, guarantee a fallback book object
+      setScannedBookResult({
+        book: {
+          id: `book-${Date.now()}`,
+          isbn: formatted || cleanIsbn,
+          rawIsbn: cleanIsbn,
+          title: `Naskenovaná kniha (${formatted || cleanIsbn})`,
+          author: 'Neznámý autor',
+          year: 'Neuvedeno',
+          publisher: 'Neuvedeno',
+          genre: 'Všeobecná literatura',
+          ageGroup: 'Všeobecná veřejnost',
+          language: 'Čeština',
+          cover: `https://covers.openlibrary.org/b/isbn/${cleanIsbn}-L.jpg`,
+          scannedAt: new Date().toISOString(),
+        },
+        searched: true,
+      });
     } finally {
       setIsLoadingBook(false);
     }
@@ -51,10 +79,9 @@ export default function App() {
     const updated = getSavedBooks();
     setLibraryBooks(updated);
 
-    // Smooth transition back to main screen
     setTimeout(() => {
       setScannedBookResult(null);
-    }, 400);
+    }, 300);
   };
 
   // Delete book from library
@@ -81,6 +108,8 @@ export default function App() {
         onStartScan={() => setIsScannerOpen(true)}
         onOpenManualInput={() => setIsManualInputOpen(true)}
         libraryCount={libraryBooks.length}
+        lastScanDebug={lastScanDebug}
+        onClearDebug={() => setLastScanDebug(null)}
       />
 
       {/* Barcode Scanner Viewfinder Modal */}

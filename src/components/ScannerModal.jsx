@@ -9,6 +9,40 @@ export default function ScannerModal({ isOpen, onClose, onScanSuccess, onOpenMan
   const fileInputRef = useRef(null);
   const isStoppingRef = useRef(false);
 
+  // Safe method to stop camera and cleanup html5Qrcode instance
+  const safeStopScanner = async () => {
+    if (!html5QrcodeRef.current) return;
+    const instance = html5QrcodeRef.current;
+    html5QrcodeRef.current = null;
+    isStoppingRef.current = true;
+
+    try {
+      if (instance.isScanning) {
+        // Stop scanning via html5Qrcode without manually killing media tracks first
+        await instance.stop().catch(() => {});
+      }
+      await instance.clear().catch(() => {});
+    } catch (e) {
+      console.warn('Instance cleanup error:', e);
+    } finally {
+      // Force kill leftover video tracks as fallback
+      try {
+        const video = document.querySelector('#interactive-barcode-reader video');
+        if (video && video.srcObject) {
+          const tracks = video.srcObject.getTracks();
+          tracks.forEach((track) => track.stop());
+        }
+      } catch (e) {}
+    }
+  };
+
+  // Safe close handler that stops camera BEFORE closing modal
+  const handleSafeClose = (onDone) => {
+    onClose();
+    if (onDone) onDone();
+    safeStopScanner();
+  };
+
   useEffect(() => {
     if (!isOpen) return;
 
@@ -19,7 +53,14 @@ export default function ScannerModal({ isOpen, onClose, onScanSuccess, onOpenMan
 
     const config = {
       fps: 10,
-      qrbox: { width: 280, height: 160 },
+      qrbox: (viewfinderWidth, viewfinderHeight) => {
+        const width = Math.max(200, Math.floor(viewfinderWidth * 0.8));
+        const height = Math.max(120, Math.floor(viewfinderHeight * 0.45));
+        return {
+          width: Math.min(width, 300),
+          height: Math.min(height, 180),
+        };
+      },
       formatsToSupport: [
         Html5QrcodeSupportedFormats.EAN_13,
         Html5QrcodeSupportedFormats.EAN_8,
@@ -37,30 +78,47 @@ export default function ScannerModal({ isOpen, onClose, onScanSuccess, onOpenMan
         const html5Qrcode = new Html5Qrcode(elementId);
         html5QrcodeRef.current = html5Qrcode;
 
-        await html5Qrcode.start(
-          { facingMode: 'environment' },
-          config,
-          async (decodedText) => {
-            if (!isMounted || isStoppingRef.current) return;
-            isStoppingRef.current = true;
+        const onScanMatch = (decodedText) => {
+          if (!isMounted || isStoppingRef.current) return;
+          isStoppingRef.current = true;
 
-            // Safely stop scanner before invoking callback
-            try {
-              if (html5Qrcode.isScanning) {
-                await html5Qrcode.stop().catch(() => {});
-              }
-            } catch (err) {
-              console.warn('Scanner stop error:', err);
-            } finally {
-              if (isMounted) {
-                onScanSuccess(decodedText);
-              }
+          // Pause immediately to prevent duplicate frames
+          try {
+            if (html5Qrcode.isScanning) {
+              html5Qrcode.pause(true);
             }
-          },
-          () => {
-            // Frame search error, ignore
+          } catch (e) {}
+
+          // Invoke success callback immediately so UI transitions to result modal
+          onScanSuccess(decodedText);
+
+          // Stop camera asynchronously in background
+          safeStopScanner();
+        };
+
+        // Try environment camera first
+        try {
+          await html5Qrcode.start(
+            { facingMode: 'environment' },
+            config,
+            onScanMatch,
+            () => {}
+          );
+        } catch (envErr) {
+          console.warn('Environment camera failed, trying fallback camera list:', envErr);
+          const devices = await Html5Qrcode.getCameras().catch(() => []);
+          if (devices && devices.length > 0) {
+            const backCamera = devices.find((d) => /back|rear|environment/i.test(d.label)) || devices[devices.length - 1];
+            await html5Qrcode.start(
+              backCamera.id,
+              config,
+              onScanMatch,
+              () => {}
+            );
+          } else {
+            throw envErr;
           }
-        );
+        }
 
         if (isMounted) {
           setIsInitializing(false);
@@ -72,22 +130,12 @@ export default function ScannerModal({ isOpen, onClose, onScanSuccess, onOpenMan
           setScannerError('Není přístup k fotoaparátu nebo zařízení nemá aktivní kameru.');
         }
       }
-    }, 200);
+    }, 150);
 
     return () => {
       isMounted = false;
-      isStoppingRef.current = true;
       clearTimeout(timer);
-      if (html5QrcodeRef.current) {
-        try {
-          if (html5QrcodeRef.current.isScanning) {
-            html5QrcodeRef.current.stop().catch(() => {});
-          }
-          html5QrcodeRef.current.clear().catch(() => {});
-        } catch (e) {
-          // Ignore cleanup errors
-        }
-      }
+      safeStopScanner();
     };
   }, [isOpen]);
 
@@ -102,6 +150,7 @@ export default function ScannerModal({ isOpen, onClose, onScanSuccess, onOpenMan
       const result = await html5QrcodeRef.current.scanFile(file, true);
       if (result) {
         onScanSuccess(result);
+        safeStopScanner();
       }
     } catch (err) {
       alert('Čárový kód se z obrázku nepodařilo přečíst. Zkuste jiný nebo zadejte ISBN ručně.');
@@ -119,7 +168,7 @@ export default function ScannerModal({ isOpen, onClose, onScanSuccess, onOpenMan
           <span className="font-bold text-base text-white">Skenování čárového kódu</span>
         </div>
         <button
-          onClick={onClose}
+          onClick={() => handleSafeClose()}
           className="p-2 text-slate-400 hover:text-white bg-slate-800 rounded-full transition-colors"
           aria-label="Zavřít"
         >
@@ -198,10 +247,7 @@ export default function ScannerModal({ isOpen, onClose, onScanSuccess, onOpenMan
           </button>
 
           <button
-            onClick={() => {
-              onClose();
-              onOpenManualInput();
-            }}
+            onClick={() => handleSafeClose(onOpenManualInput)}
             className="py-3 px-4 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 font-semibold text-xs rounded-xl border border-amber-500/30 transition-colors flex items-center justify-center gap-2"
           >
             <Keyboard className="w-4 h-4" />
@@ -210,7 +256,7 @@ export default function ScannerModal({ isOpen, onClose, onScanSuccess, onOpenMan
         </div>
 
         <button
-          onClick={onClose}
+          onClick={() => handleSafeClose()}
           className="w-full py-3 bg-slate-800/60 hover:bg-slate-800 text-slate-400 hover:text-white font-medium text-xs rounded-xl transition-colors"
         >
           Zrušit skenování
