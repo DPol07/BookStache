@@ -11,36 +11,39 @@ export default function ScannerModal({ isOpen, onClose, onScanSuccess, onOpenMan
 
   // Safe method to stop camera and cleanup html5Qrcode instance
   const safeStopScanner = async () => {
-    if (!html5QrcodeRef.current) return;
-    const instance = html5QrcodeRef.current;
-    html5QrcodeRef.current = null;
+    if (isStoppingRef.current) return;
     isStoppingRef.current = true;
 
-    try {
-      if (instance.isScanning) {
-        // Stop scanning via html5Qrcode without manually killing media tracks first
-        await instance.stop().catch(() => {});
-      }
-      await instance.clear().catch(() => {});
-    } catch (e) {
-      console.warn('Instance cleanup error:', e);
-    } finally {
-      // Force kill leftover video tracks as fallback
+    if (html5QrcodeRef.current) {
+      const instance = html5QrcodeRef.current;
+      html5QrcodeRef.current = null;
       try {
-        const video = document.querySelector('#interactive-barcode-reader video');
-        if (video && video.srcObject) {
-          const tracks = video.srcObject.getTracks();
-          tracks.forEach((track) => track.stop());
+        if (instance.isScanning) {
+          await instance.stop().catch(() => {});
         }
-      } catch (e) {}
+        await instance.clear().catch(() => {});
+      } catch (e) {
+        console.warn('Instance cleanup error:', e);
+      }
+    }
+
+    // Direct track stop to ensure camera light turns off on mobile browsers
+    try {
+      const video = document.querySelector('#interactive-barcode-reader video');
+      if (video && video.srcObject) {
+        const tracks = video.srcObject.getTracks();
+        tracks.forEach((track) => track.stop());
+      }
+    } catch (e) {
+      console.warn('Track stop error:', e);
     }
   };
 
   // Safe close handler that stops camera BEFORE closing modal
-  const handleSafeClose = (onDone) => {
+  const handleSafeClose = async (onDone) => {
+    await safeStopScanner();
     onClose();
     if (onDone) onDone();
-    safeStopScanner();
   };
 
   useEffect(() => {
@@ -78,22 +81,22 @@ export default function ScannerModal({ isOpen, onClose, onScanSuccess, onOpenMan
         const html5Qrcode = new Html5Qrcode(elementId);
         html5QrcodeRef.current = html5Qrcode;
 
-        const onScanMatch = (decodedText) => {
+        const onScanMatch = async (decodedText) => {
           if (!isMounted || isStoppingRef.current) return;
-          isStoppingRef.current = true;
 
-          // Pause immediately to prevent duplicate frames
+          // Pause video immediately so scanner stops parsing frames
           try {
             if (html5Qrcode.isScanning) {
               html5Qrcode.pause(true);
             }
           } catch (e) {}
 
-          // Invoke success callback immediately so UI transitions to result modal
-          onScanSuccess(decodedText);
+          // Stop camera before calling success callback
+          await safeStopScanner();
 
-          // Stop camera asynchronously in background
-          safeStopScanner();
+          if (isMounted) {
+            onScanSuccess(decodedText);
+          }
         };
 
         // Try environment camera first
@@ -149,8 +152,8 @@ export default function ScannerModal({ isOpen, onClose, onScanSuccess, onOpenMan
       }
       const result = await html5QrcodeRef.current.scanFile(file, true);
       if (result) {
+        await safeStopScanner();
         onScanSuccess(result);
-        safeStopScanner();
       }
     } catch (err) {
       alert('Čárový kód se z obrázku nepodařilo přečíst. Zkuste jiný nebo zadejte ISBN ručně.');
