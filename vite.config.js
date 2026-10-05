@@ -8,6 +8,16 @@ export default defineConfig({
     react(),
     tailwindcss(),
   ],
+  build: {
+    outDir: 'dist',
+    rollupOptions: {
+      output: {
+        entryFileNames: 'assets/app.js',
+        chunkFileNames: 'assets/[name].js',
+        assetFileNames: 'assets/app.[ext]'
+      }
+    }
+  },
   server: {
     port: 3000,
     host: true,
