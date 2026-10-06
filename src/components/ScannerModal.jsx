@@ -165,14 +165,14 @@ export default function ScannerModal({ isOpen, onClose, onScanSuccess, onOpenMan
   return (
     <div className="fixed inset-0 z-50 flex flex-col bg-stone-950 text-amber-100 animate-fadeIn">
       {/* Top Header */}
-      <div className="flex items-center justify-between p-4 bg-amber-950/90 border-b border-amber-800/60 backdrop-blur-md z-20">
+      <div className="flex items-center justify-between p-4 bg-amber-950-90 border-b border-amber-800-60 backdrop-blur-md z-20">
         <div className="flex items-center gap-2">
           <Camera className="w-5 h-5 text-amber-400 animate-pulse" />
           <span className="font-bold text-base text-amber-100 font-serif">Skenování čárového kódu</span>
         </div>
         <button
           onClick={() => handleSafeClose()}
-          className="p-2 text-amber-300 hover:text-white bg-amber-900/60 rounded-full transition-colors"
+          className="p-2 text-amber-300 hover:text-white bg-amber-900-60 rounded-full transition-colors"
           aria-label="Zavřít"
         >
           <X className="w-6 h-6" />
@@ -188,7 +188,7 @@ export default function ScannerModal({ isOpen, onClose, onScanSuccess, onOpenMan
         {!scannerError && (
           <div className="absolute inset-0 pointer-events-none flex flex-col items-center justify-center p-6">
             {/* Dark Mask Surrounding Target Box */}
-            <div className="relative w-72 h-44 border-2 border-amber-500/90 rounded-3xl shadow-[0_0_0_9999px_rgba(28,25,23,0.8)] flex items-center justify-center overflow-hidden">
+            <div className="relative w-72 h-44 border-2 border-amber-500-90 rounded-3xl shadow-[0_0_0_9999px_rgba(28,25,23,0.8)] flex items-center justify-center overflow-hidden">
               {/* Corner Accents */}
               <div className="absolute top-2 left-2 w-4 h-4 border-t-4 border-l-4 border-amber-400 rounded-tl-md" />
               <div className="absolute top-2 right-2 w-4 h-4 border-t-4 border-r-4 border-amber-400 rounded-tr-md" />
@@ -200,7 +200,7 @@ export default function ScannerModal({ isOpen, onClose, onScanSuccess, onOpenMan
             </div>
 
             {/* Instruction Label */}
-            <p className="mt-6 text-xs font-semibold text-amber-100 bg-amber-950/90 px-4 py-2 rounded-full border border-amber-700/60 shadow-lg text-center backdrop-blur-md">
+            <p className="mt-6 text-xs font-semibold text-amber-100 bg-amber-950-90 px-4 py-2 rounded-full border border-amber-700-60 shadow-lg text-center backdrop-blur-md">
               Naměřte čárový kód na knize do rámečku
             </p>
           </div>
@@ -208,7 +208,7 @@ export default function ScannerModal({ isOpen, onClose, onScanSuccess, onOpenMan
 
         {/* Initializing Spinner */}
         {isInitializing && !scannerError && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center bg-stone-950/90 gap-3">
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-stone-950-90 gap-3">
             <RefreshCw className="w-8 h-8 text-amber-400 animate-spin" />
             <p className="text-sm font-medium text-amber-200">Spouštění fotoaparátu...</p>
           </div>
@@ -217,12 +217,12 @@ export default function ScannerModal({ isOpen, onClose, onScanSuccess, onOpenMan
         {/* Camera Error Fallback View */}
         {scannerError && (
           <div className="absolute inset-0 p-6 flex flex-col items-center justify-center bg-stone-950 text-center gap-4">
-            <div className="p-4 bg-amber-900/30 text-amber-400 rounded-full border border-amber-600/40">
+            <div className="p-4 bg-amber-900-30 text-amber-400 rounded-full border border-amber-600-40">
               <AlertCircle className="w-10 h-10" />
             </div>
             <div>
               <h3 className="text-lg font-bold text-amber-100 font-serif mb-1">Fotoaparát není k dispozici</h3>
-              <p className="text-xs text-amber-200/70 max-w-xs mx-auto">
+              <p className="text-xs text-amber-200-70 max-w-xs mx-auto">
                 {scannerError} Můžete vybrat fotografii s čárovým kódem nebo zadat ISBN ručně.
               </p>
             </div>
@@ -243,7 +243,7 @@ export default function ScannerModal({ isOpen, onClose, onScanSuccess, onOpenMan
         <div className="grid grid-cols-2 gap-3">
           <button
             onClick={() => fileInputRef.current?.click()}
-            className="py-3 px-4 bg-amber-900/40 hover:bg-amber-900/70 text-amber-200 font-semibold text-xs rounded-xl border border-amber-700/50 transition-colors flex items-center justify-center gap-2"
+            className="py-3 px-4 bg-amber-900-40 hover:bg-amber-900-70 text-amber-200 font-semibold text-xs rounded-xl border border-amber-700-50 transition-colors flex items-center justify-center gap-2"
           >
             <Image className="w-4 h-4 text-amber-400" />
             <span>Nahrát fotku</span>
@@ -251,7 +251,7 @@ export default function ScannerModal({ isOpen, onClose, onScanSuccess, onOpenMan
 
           <button
             onClick={() => handleSafeClose(onOpenManualInput)}
-            className="py-3 px-4 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 font-bold text-xs rounded-xl border border-amber-500/40 transition-colors flex items-center justify-center gap-2"
+            className="py-3 px-4 bg-amber-500-20 hover:bg-amber-500-30 text-amber-300 font-bold text-xs rounded-xl border border-amber-500-40 transition-colors flex items-center justify-center gap-2"
           >
             <Keyboard className="w-4 h-4" />
             <span>Zadat ISBN</span>
@@ -260,7 +260,7 @@ export default function ScannerModal({ isOpen, onClose, onScanSuccess, onOpenMan
 
         <button
           onClick={() => handleSafeClose()}
-          className="w-full py-3 bg-stone-900/80 hover:bg-stone-900 text-amber-300/70 hover:text-amber-100 font-medium text-xs rounded-xl transition-colors"
+          className="w-full py-3 bg-stone-900-80 hover:bg-stone-900 text-amber-300-70 hover:text-amber-100 font-medium text-xs rounded-xl transition-colors"
         >
           Zrušit skenování
         </button>
