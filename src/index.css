@@ -1,10 +1,13 @@
 @import "tailwindcss";
 
-@layer base {
-  body {
-    background-color: #1c1917; /* stone-900 warm vintage dark brown background */
-    color: #fef3c7; /* amber-100 warm ivory text */
-  }
+:root {
+  color-scheme: light;
+}
+
+body {
+  background-color: #1c1917 !important; /* Fixed warm vintage dark brown background */
+  color: #fef3c7 !important; /* Fixed warm ivory text */
+  -webkit-text-size-adjust: 100%;
 }
 
 @keyframes scanline {
