@@ -1,13 +1,26 @@
 @import "tailwindcss";
 
 :root {
-  color-scheme: light;
+  color-scheme: only light !important;
+  supported-color-schemes: light !important;
 }
 
-body {
-  background-color: #1c1917 !important; /* Fixed warm vintage dark brown background */
-  color: #fef3c7 !important; /* Fixed warm ivory text */
+html, body {
+  background-color: #1c1917 !important; /* Solid dark warm brown */
+  color: #fef3c7 !important; /* Solid warm ivory */
   -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+  forced-color-adjust: none !important;
+  filter: none !important;
+}
+
+/* Ensure no browser auto dark mode shifts colors or filters images */
+@media (prefers-color-scheme: dark) {
+  html, body {
+    background-color: #1c1917 !important;
+    color: #fef3c7 !important;
+    filter: none !important;
+  }
 }
 
 @keyframes scanline {
