@@ -53,7 +53,8 @@ export default function App() {
           genre: 'Všeobecná literatura',
           ageGroup: 'Všeobecná veřejnost',
           language: 'Čeština',
-          cover: `https://covers.openlibrary.org/b/isbn/${cleanIsbn}-L.jpg`,
+          cover: `https://www.obalkyknih.cz/file/cover/${cleanIsbn}/medium`,
+          fallbackCover: `https://covers.openlibrary.org/b/isbn/${cleanIsbn}-L.jpg`,
           scannedAt: new Date().toISOString(),
         },
         searched: true,
@@ -87,7 +88,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-amber-500 selection:text-slate-950">
+    <div className="min-h-screen bg-stone-900 text-amber-100 flex flex-col font-sans selection:bg-amber-600 selection:text-amber-950">
       {/* Header with Top Left "Knihovna" button */}
       <Header
         libraryCount={libraryBooks.length}

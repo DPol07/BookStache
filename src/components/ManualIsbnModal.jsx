@@ -1,103 +1,128 @@
 import React, { useState } from 'react';
-import { X, Search, BookOpen, Sparkles } from 'lucide-react';
-import { normalizeIsbn } from '../services/bookApi';
+import { X, Search, Keyboard, Book, Sparkles } from 'lucide-react';
 
 export default function ManualIsbnModal({ isOpen, onClose, onSubmitIsbn }) {
-  const [isbnInput, setIsbnInput] = useState('');
-  const [error, setError] = useState('');
+  const [isbn, setIsbn] = useState('');
 
   if (!isOpen) return null;
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const clean = normalizeIsbn(isbnInput);
-    if (!clean || clean.length < 9) {
-      setError('Zadejte platné 10 nebo 13-místné ISBN číslo (např. 9788000058825)');
-      return;
-    }
-    setError('');
-    onSubmitIsbn(clean);
+    if (!isbn.trim()) return;
+    onSubmitIsbn(isbn);
+    setIsbn('');
   };
 
-  const sampleIsbns = [
-    { label: 'Harry Potter', isbn: '9788000058825' },
-    { label: 'Malý princ', isbn: '9788000058832' },
-    { label: '1984', isbn: '9788020455826' },
-    { label: 'Alchymista', isbn: '9788073819316' },
-  ];
+  const handleSampleClick = (sampleIsbn) => {
+    onSubmitIsbn(sampleIsbn);
+    setIsbn('');
+  };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fadeIn">
-      <div className="relative w-full max-w-md p-6 bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl overflow-hidden">
-        {/* Close button */}
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-950/85 backdrop-blur-md animate-fadeIn">
+      <div className="relative w-full max-w-md bg-stone-900 border border-amber-800/60 rounded-3xl shadow-2xl overflow-hidden p-6 text-amber-100">
+        {/* Top-Right 'X' Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 p-2 text-slate-400 hover:text-white bg-slate-800/60 hover:bg-slate-800 rounded-full transition-colors"
+          className="absolute top-4 right-4 p-2 text-amber-300/70 hover:text-white bg-amber-950/60 hover:bg-amber-900 rounded-full transition-colors border border-amber-800/40"
           aria-label="Zavřít"
         >
           <X className="w-5 h-5" />
         </button>
 
+        {/* Modal Header */}
         <div className="flex items-center gap-3 mb-4">
-          <div className="p-3 bg-amber-500/10 text-amber-500 rounded-2xl border border-amber-500/20">
-            <BookOpen className="w-6 h-6" />
+          <div className="p-3 bg-amber-600/20 text-amber-400 rounded-2xl border border-amber-600/30">
+            <Keyboard className="w-6 h-6" />
           </div>
           <div>
-            <h2 className="text-xl font-bold text-white">Zadat ISBN ručně</h2>
-            <p className="text-xs text-slate-400">Napište 10 nebo 13-místný ISBN kód knihy</p>
+            <h3 className="text-xl font-extrabold text-amber-100 font-serif">Zadat ISBN ručně</h3>
+            <p className="text-xs text-amber-200/70">Napište 10 nebo 13-místný ISBN kód knihy</p>
           </div>
         </div>
 
+        {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">
-              ISBN číslo
-            </label>
-            <div className="relative">
-              <input
-                type="text"
-                value={isbnInput}
-                onChange={(e) => {
-                  setIsbnInput(e.target.value);
-                  if (error) setError('');
-                }}
-                placeholder="např. 978-80-00-05882-5"
-                className="w-full px-4 py-3.5 pl-11 bg-slate-800/80 border border-slate-700/80 rounded-2xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500 font-mono text-sm"
-                autoFocus
-              />
-              <Search className="w-5 h-5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-            </div>
-            {error && <p className="mt-2 text-xs font-medium text-rose-400">{error}</p>}
+          <div className="relative">
+            <input
+              type="text"
+              value={isbn}
+              onChange={(e) => setIsbn(e.target.value)}
+              placeholder="Např. 9788000058825 nebo 978-80-00058-82-5"
+              autoFocus
+              className="w-full px-4 py-3.5 bg-stone-950 border border-amber-800/60 rounded-2xl text-sm font-mono text-amber-100 placeholder-amber-900/60 focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500"
+            />
+            <Search className="w-5 h-5 text-amber-500/60 absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
           </div>
 
-          <button
-            type="submit"
-            className="w-full py-3.5 px-4 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-2xl shadow-lg shadow-amber-500/20 transition-all active:scale-[0.98] flex items-center justify-center gap-2"
-          >
-            <Search className="w-5 h-5" />
-            Vyhledat knihu
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 py-3.5 bg-amber-950/60 hover:bg-amber-900/60 text-amber-200/80 hover:text-amber-100 font-semibold text-xs rounded-2xl border border-amber-800/50 transition-colors"
+            >
+              Zrušit
+            </button>
+            <button
+              type="submit"
+              disabled={!isbn.trim()}
+              className="flex-1 py-3.5 bg-amber-600 hover:bg-amber-500 disabled:opacity-50 disabled:hover:bg-amber-600 text-amber-950 font-bold text-xs rounded-2xl shadow-lg shadow-amber-950/40 transition-all font-serif uppercase tracking-wider"
+            >
+              Vyhledat knihu
+            </button>
+          </div>
         </form>
 
-        {/* Quick sample chips */}
-        <div className="mt-6 pt-5 border-t border-slate-800/80">
-          <div className="flex items-center gap-1.5 mb-3 text-xs text-slate-400 font-medium">
-            <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+        {/* Quick Test Samples */}
+        <div className="mt-6 pt-4 border-t border-amber-900/50 space-y-2.5">
+          <div className="flex items-center gap-1.5 text-xs font-bold text-amber-400">
+            <Sparkles className="w-3.5 h-3.5" />
             <span>Rychlé vyzkoušení s příklady:</span>
           </div>
-          <div className="flex flex-wrap gap-2">
-            {sampleIsbns.map((s) => (
-              <button
-                key={s.isbn}
-                onClick={() => {
-                  setIsbnInput(s.isbn);
-                  setError('');
-                }}
-                className="px-3 py-1.5 text-xs bg-slate-800 hover:bg-amber-500/10 hover:border-amber-500/30 text-slate-300 hover:text-amber-400 border border-slate-700/70 rounded-xl transition-colors font-medium"
-              >
-                {s.label}
-              </button>
-            ))}
+          <div className="grid grid-cols-2 gap-2 text-xs">
+            <button
+              onClick={() => handleSampleClick('9788000058825')}
+              className="p-2.5 bg-stone-950/80 hover:bg-amber-900/40 border border-amber-800/40 rounded-xl text-left transition-colors flex items-center gap-2 group"
+            >
+              <Book className="w-4 h-4 text-amber-400 shrink-0 group-hover:scale-110 transition-transform" />
+              <div className="truncate">
+                <span className="font-bold block text-amber-100 truncate">Harry Potter</span>
+                <span className="text-[10px] text-amber-300/70 font-mono">9788000058825</span>
+              </div>
+            </button>
+
+            <button
+              onClick={() => handleSampleClick('9788000058832')}
+              className="p-2.5 bg-stone-950/80 hover:bg-amber-900/40 border border-amber-800/40 rounded-xl text-left transition-colors flex items-center gap-2 group"
+            >
+              <Book className="w-4 h-4 text-amber-400 shrink-0 group-hover:scale-110 transition-transform" />
+              <div className="truncate">
+                <span className="font-bold block text-amber-100 truncate">Malý princ</span>
+                <span className="text-[10px] text-amber-300/70 font-mono">9788000058832</span>
+              </div>
+            </button>
+
+            <button
+              onClick={() => handleSampleClick('9788020455826')}
+              className="p-2.5 bg-stone-950/80 hover:bg-amber-900/40 border border-amber-800/40 rounded-xl text-left transition-colors flex items-center gap-2 group"
+            >
+              <Book className="w-4 h-4 text-amber-400 shrink-0 group-hover:scale-110 transition-transform" />
+              <div className="truncate">
+                <span className="font-bold block text-amber-100 truncate">1984 (Orwell)</span>
+                <span className="text-[10px] text-amber-300/70 font-mono">9788020455826</span>
+              </div>
+            </button>
+
+            <button
+              onClick={() => handleSampleClick('9788073819316')}
+              className="p-2.5 bg-stone-950/80 hover:bg-amber-900/40 border border-amber-800/40 rounded-xl text-left transition-colors flex items-center gap-2 group"
+            >
+              <Book className="w-4 h-4 text-amber-400 shrink-0 group-hover:scale-110 transition-transform" />
+              <div className="truncate">
+                <span className="font-bold block text-amber-100 truncate">Alchymista</span>
+                <span className="text-[10px] text-amber-300/70 font-mono">9788073819316</span>
+              </div>
+            </button>
           </div>
         </div>
       </div>

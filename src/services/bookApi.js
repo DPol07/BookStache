@@ -1,4 +1,4 @@
-// Book API service combining Google Books, Open Library, ObálkyKnih, and fallback catalog
+// Book API service combining Google Books, Open Library, Knihovny.cz, ObálkyKnih, and fallback catalog
 
 // Helper to normalize ISBN / EAN barcode
 export function normalizeIsbn(isbn) {
@@ -169,6 +169,39 @@ const OFFLINE_CATALOG = {
   }
 };
 
+// Fetch book details from Knihovny.cz API (Czech National Union Catalog API)
+async function fetchKnihovnyCz(cleanIsbn) {
+  try {
+    const url = `https://api.knihovny.cz/api/v1/search?lookfor=${cleanIsbn}&type=Isbn`;
+    const response = await fetch(url);
+    if (!response.ok) return null;
+    const data = await response.json();
+    if (!data.records || data.records.length === 0) return null;
+
+    const record = data.records[0];
+    const title = record.title || '';
+    const author = record.authors ? (Array.isArray(record.authors) ? record.authors.join(', ') : record.authors) : '';
+    const year = record.publishDate ? String(record.publishDate) : '';
+    const publisher = record.publisher ? (Array.isArray(record.publisher) ? record.publisher[0] : record.publisher) : '';
+    const genre = translateGenre(record.genres || record.topic);
+    const cover = record.cover ? `https://www.obalkyknih.cz/file/cover/${cleanIsbn}/medium` : null;
+
+    return {
+      title,
+      author,
+      year,
+      publisher,
+      genre,
+      ageGroup: inferAgeGroup(genre, title),
+      language: 'Čeština',
+      cover,
+    };
+  } catch (e) {
+    console.warn('Knihovny.cz fetch error:', e);
+    return null;
+  }
+}
+
 // Fetch book details from Google Books
 async function fetchGoogleBooks(cleanIsbn) {
   try {
@@ -279,33 +312,38 @@ export async function fetchBookByIsbn(rawIsbn) {
     return null;
   }
 
-  // 1. Query external APIs in parallel
-  const [gbResult, olResult] = await Promise.allSettled([
+  // 1. Query external APIs in parallel (Knihovny.cz, Google Books, Open Library)
+  const [knihovnyResult, gbResult, olResult] = await Promise.allSettled([
+    fetchKnihovnyCz(cleanIsbn),
     fetchGoogleBooks(cleanIsbn),
     fetchOpenLibrary(cleanIsbn),
   ]);
 
+  const knihovnyData = knihovnyResult.status === 'fulfilled' ? knihovnyResult.value : null;
   const gbData = gbResult.status === 'fulfilled' ? gbResult.value : null;
   const olData = olResult.status === 'fulfilled' ? olResult.value : null;
 
   // 2. Check offline catalog
   const offlineData = OFFLINE_CATALOG[cleanIsbn];
 
-  // Merge data prioritizing accuracy
-  const title = gbData?.title || olData?.title || offlineData?.title || `Naskenovaná kniha (${formatIsbnDisplay(cleanIsbn)})`;
-  const author = gbData?.author || olData?.author || offlineData?.author || 'Neznámý autor';
-  const year = gbData?.year || olData?.year || offlineData?.year || 'Neuvedeno';
-  const publisher = gbData?.publisher || olData?.publisher || offlineData?.publisher || 'Neuvedeno';
-  const genre = gbData?.genre || olData?.genre || offlineData?.genre || 'Všeobecná literatura';
-  const ageGroup = gbData?.ageGroup || olData?.ageGroup || offlineData?.ageGroup || 'Všeobecná veřejnost';
-  const language = gbData?.language || olData?.language || offlineData?.language || 'Čeština';
+  // Merge data prioritizing accuracy (Czech library catalog Knihovny.cz first for Czech books, then Google Books, then Open Library)
+  const title = knihovnyData?.title || gbData?.title || olData?.title || offlineData?.title || `Naskenovaná kniha (${formatIsbnDisplay(cleanIsbn)})`;
+  const author = knihovnyData?.author || gbData?.author || olData?.author || offlineData?.author || 'Neznámý autor';
+  const year = knihovnyData?.year || gbData?.year || olData?.year || offlineData?.year || 'Neuvedeno';
+  const publisher = knihovnyData?.publisher || gbData?.publisher || olData?.publisher || offlineData?.publisher || 'Neuvedeno';
+  const genre = knihovnyData?.genre || gbData?.genre || olData?.genre || offlineData?.genre || 'Všeobecná literatura';
+  const ageGroup = knihovnyData?.ageGroup || gbData?.ageGroup || olData?.ageGroup || offlineData?.ageGroup || 'Všeobecná veřejnost';
+  const language = knihovnyData?.language || gbData?.language || olData?.language || offlineData?.language || 'Čeština';
 
-  // Cover fallback priority across multiple sources:
-  // 1. Google Books cover
-  // 2. Open Library cover
-  // 3. ObálkyKnih (obalkyknih.cz - widely used Czech book cover provider)
-  // 4. Open Library ISBN direct link
-  let cover = gbData?.cover || olData?.cover || offlineData?.cover || `https://www.obalkyknih.cz/file/cover/${cleanIsbn}/medium`;
+  // Cover fallback priority:
+  // 1. ObálkyKnih (obalkyknih.cz)
+  // 2. Google Books cover
+  // 3. Open Library cover
+  let cover = `https://www.obalkyknih.cz/file/cover/${cleanIsbn}/medium`;
+  if (gbData?.cover) cover = gbData.cover;
+  else if (olData?.cover) cover = olData.cover;
+  else if (knihovnyData?.cover) cover = knihovnyData.cover;
+  else if (offlineData?.cover) cover = offlineData.cover;
 
   return {
     id: `${cleanIsbn}-${Date.now()}`,
