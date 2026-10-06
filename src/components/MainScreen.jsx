@@ -37,8 +37,8 @@ export default function MainScreen({ onStartScan, onOpenManualInput, libraryCoun
           }}
           className="relative group w-56 h-56 rounded-full font-black transition-transform active:scale-95 flex flex-col items-center justify-center gap-2 border-4 cursor-pointer"
         >
-          {/* Logo with Closed Book + Protruding Brown Moustache on the central button */}
-          <BookStacheLogo className="w-20 h-16 group-hover:scale-105 transition-transform" />
+          {/* Logo symbol on central button */}
+          <BookStacheLogo className="w-16 h-16 group-hover:scale-105 transition-transform" />
 
           <span style={{ color: '#1c1917' }} className="text-2xl tracking-wider font-black uppercase font-serif">
             NASKENOVAT
