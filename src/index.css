@@ -1,11 +1,16 @@
 @import "tailwindcss";
 
 :root {
-  color-scheme: only light !important;
+  color-scheme: light !important;
   supported-color-schemes: light !important;
 }
 
-html, body {
+*, *::before, *::after {
+  forced-color-adjust: none !important;
+}
+
+html, body, #root {
+  color-scheme: light !important;
   background-color: #1c1917 !important; /* Solid dark warm brown */
   color: #fef3c7 !important; /* Solid warm ivory */
   -webkit-text-size-adjust: 100%;
@@ -14,9 +19,13 @@ html, body {
   filter: none !important;
 }
 
-/* Ensure no browser auto dark mode shifts colors or filters images */
+/* Force light color scheme and disable media dark overrides on all devices */
 @media (prefers-color-scheme: dark) {
-  html, body {
+  :root {
+    color-scheme: light !important;
+  }
+  html, body, #root {
+    color-scheme: light !important;
     background-color: #1c1917 !important;
     color: #fef3c7 !important;
     filter: none !important;
