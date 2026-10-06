@@ -18,18 +18,19 @@ export class ErrorBoundary extends React.Component {
   render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen bg-stone-900 text-amber-100 flex items-center justify-center p-6">
-          <div className="max-w-md w-full bg-stone-950 border border-amber-800 p-6 rounded-3xl text-center space-y-4">
-            <div className="w-12 h-12 mx-auto bg-amber-900-30 text-amber-400 rounded-full border border-amber-600-40 flex items-center justify-center">
+        <div style={{ backgroundColor: '#FAF6F0', color: '#3D2314' }} className="min-h-screen flex items-center justify-center p-6">
+          <div style={{ backgroundColor: '#FFFDF9', borderColor: '#E6D7C3' }} className="max-w-md w-full border p-6 rounded-3xl text-center space-y-4">
+            <div style={{ backgroundColor: '#EAE1D3', borderColor: '#D97706', color: '#D97706' }} className="w-12 h-12 mx-auto rounded-full border flex items-center justify-center">
               <AlertCircle className="w-6 h-6" />
             </div>
-            <h2 className="text-lg font-bold text-amber-100 font-serif">Aplikace narazila na neočekávanou chybu</h2>
-            <p className="text-xs text-amber-300-70 leading-relaxed">
+            <h2 className="text-lg font-bold font-serif">Aplikace narazila na neočekávanou chybu</h2>
+            <p style={{ color: '#5C3A24' }} className="text-xs leading-relaxed">
               Došlo k chybě při vykreslování obrazovky. Zkuste aplikaci obnovit.
             </p>
             <button
               onClick={() => window.location.reload()}
-              className="w-full py-3 px-4 bg-amber-600 hover:bg-amber-500 text-amber-950 font-bold text-xs rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 font-serif uppercase tracking-wider"
+              style={{ backgroundColor: '#D97706', color: '#FFFDF9' }}
+              className="w-full py-3 px-4 font-bold text-xs rounded-xl flex items-center justify-center gap-2 font-serif uppercase tracking-wider cursor-pointer"
             >
               <RotateCcw className="w-4 h-4" />
               Obnovit aplikaci
@@ -42,3 +43,5 @@ export class ErrorBoundary extends React.Component {
     return this.props.children;
   }
 }
+
+export default ErrorBoundary;

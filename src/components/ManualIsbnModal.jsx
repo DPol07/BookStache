@@ -19,12 +19,13 @@ export default function ManualIsbnModal({ isOpen, onClose, onSubmitIsbn }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-950-85 backdrop-blur-md animate-fadeIn">
-      <div className="relative w-full max-w-md bg-stone-900 border border-amber-800-60 rounded-3xl shadow-2xl overflow-hidden p-6 text-amber-100">
+    <div style={{ backgroundColor: '#FAF6F0' }} className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-fadeIn">
+      <div style={{ backgroundColor: '#FFFDF9', borderColor: '#E6D7C3', color: '#3D2314' }} className="relative w-full max-w-md border rounded-3xl overflow-hidden p-6">
         {/* Top-Right 'X' Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 p-2 text-amber-300-70 hover:text-white bg-amber-950-60 hover:bg-amber-900 rounded-full transition-colors border border-amber-800-40"
+          style={{ backgroundColor: '#D97706', color: '#FFFDF9' }}
+          className="absolute top-4 right-4 p-2 rounded-full cursor-pointer"
           aria-label="Zavřít"
         >
           <X className="w-5 h-5" />
@@ -32,12 +33,12 @@ export default function ManualIsbnModal({ isOpen, onClose, onSubmitIsbn }) {
 
         {/* Modal Header */}
         <div className="flex items-center gap-3 mb-4">
-          <div className="p-3 bg-amber-600-20 text-amber-400 rounded-2xl border border-amber-600-30">
+          <div style={{ backgroundColor: '#EAE1D3', borderColor: '#D97706', color: '#D97706' }} className="p-3 rounded-2xl border">
             <Keyboard className="w-6 h-6" />
           </div>
           <div>
-            <h3 className="text-xl font-extrabold text-amber-100 font-serif">Zadat ISBN ručně</h3>
-            <p className="text-xs text-amber-200-70">Napište 10 nebo 13-místný ISBN kód knihy</p>
+            <h3 className="text-xl font-extrabold font-serif">Zadat ISBN ručně</h3>
+            <p style={{ color: '#5C3A24' }} className="text-xs">Napište 10 nebo 13-místný ISBN kód knihy</p>
           </div>
         </div>
 
@@ -50,23 +51,26 @@ export default function ManualIsbnModal({ isOpen, onClose, onSubmitIsbn }) {
               onChange={(e) => setIsbn(e.target.value)}
               placeholder="Např. 9788000058825 nebo 978-80-00058-82-5"
               autoFocus
-              className="w-full px-4 py-3.5 bg-stone-950 border border-amber-800-60 rounded-2xl text-sm font-mono text-amber-100 placeholder-amber-900-60 focus:outline-none focus:ring-2 focus:ring-amber-500-50 focus:border-amber-500"
+              style={{ backgroundColor: '#FAF6F0', borderColor: '#D97706', color: '#3D2314' }}
+              className="w-full px-4 py-3.5 border rounded-2xl text-sm font-mono focus:outline-none"
             />
-            <Search className="w-5 h-5 text-amber-500-60 absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <Search className="w-5 h-5 absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: '#D97706' }} />
           </div>
 
           <div className="flex items-center gap-2">
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 py-3.5 bg-amber-950-60 hover:bg-amber-900-60 text-amber-200-80 hover:text-amber-100 font-semibold text-xs rounded-2xl border border-amber-800-50 transition-colors"
+              style={{ backgroundColor: '#EAE1D3', borderColor: '#E6D7C3', color: '#3D2314' }}
+              className="flex-1 py-3.5 font-semibold text-xs rounded-2xl border transition-colors cursor-pointer"
             >
               Zrušit
             </button>
             <button
               type="submit"
               disabled={!isbn.trim()}
-              className="flex-1 py-3.5 bg-amber-600 hover:bg-amber-500 disabled:opacity-50 disabled:hover:bg-amber-600 text-amber-950 font-bold text-xs rounded-2xl shadow-lg shadow-amber-950-40 transition-all font-serif uppercase tracking-wider"
+              style={{ backgroundColor: '#D97706', color: '#FFFDF9' }}
+              className="flex-1 py-3.5 font-bold text-xs rounded-2xl transition-all font-serif uppercase tracking-wider cursor-pointer"
             >
               Vyhledat knihu
             </button>
@@ -74,53 +78,57 @@ export default function ManualIsbnModal({ isOpen, onClose, onSubmitIsbn }) {
         </form>
 
         {/* Quick Test Samples */}
-        <div className="mt-6 pt-4 border-t border-amber-900-50 space-y-2.5">
-          <div className="flex items-center gap-1.5 text-xs font-bold text-amber-400">
+        <div style={{ borderColor: '#E6D7C3' }} className="mt-6 pt-4 border-t space-y-2.5">
+          <div className="flex items-center gap-1.5 text-xs font-bold" style={{ color: '#C26200' }}>
             <Sparkles className="w-3.5 h-3.5" />
             <span>Rychlé vyzkoušení s příklady:</span>
           </div>
           <div className="grid grid-cols-2 gap-2 text-xs">
             <button
               onClick={() => handleSampleClick('9788000058825')}
-              className="p-2.5 bg-stone-950-80 hover:bg-amber-900-40 border border-amber-800-40 rounded-xl text-left transition-colors flex items-center gap-2 group"
+              style={{ backgroundColor: '#FAF6F0', borderColor: '#E6D7C3', color: '#3D2314' }}
+              className="p-2.5 border rounded-xl text-left transition-colors flex items-center gap-2 group cursor-pointer"
             >
-              <Book className="w-4 h-4 text-amber-400 shrink-0 group-hover:scale-110 transition-transform" />
+              <Book className="w-4 h-4 shrink-0 group-hover:scale-110 transition-transform" style={{ color: '#D97706' }} />
               <div className="truncate">
-                <span className="font-bold block text-amber-100 truncate">Harry Potter</span>
-                <span className="text-[10px] text-amber-300-70 font-mono">9788000058825</span>
+                <span className="font-bold block truncate">Harry Potter</span>
+                <span className="text-[10px] font-mono" style={{ color: '#8C593B' }}>9788000058825</span>
               </div>
             </button>
 
             <button
               onClick={() => handleSampleClick('9788000058832')}
-              className="p-2.5 bg-stone-950-80 hover:bg-amber-900-40 border border-amber-800-40 rounded-xl text-left transition-colors flex items-center gap-2 group"
+              style={{ backgroundColor: '#FAF6F0', borderColor: '#E6D7C3', color: '#3D2314' }}
+              className="p-2.5 border rounded-xl text-left transition-colors flex items-center gap-2 group cursor-pointer"
             >
-              <Book className="w-4 h-4 text-amber-400 shrink-0 group-hover:scale-110 transition-transform" />
+              <Book className="w-4 h-4 shrink-0 group-hover:scale-110 transition-transform" style={{ color: '#D97706' }} />
               <div className="truncate">
-                <span className="font-bold block text-amber-100 truncate">Malý princ</span>
-                <span className="text-[10px] text-amber-300-70 font-mono">9788000058832</span>
+                <span className="font-bold block truncate">Malý princ</span>
+                <span className="text-[10px] font-mono" style={{ color: '#8C593B' }}>9788000058832</span>
               </div>
             </button>
 
             <button
               onClick={() => handleSampleClick('9788020455826')}
-              className="p-2.5 bg-stone-950-80 hover:bg-amber-900-40 border border-amber-800-40 rounded-xl text-left transition-colors flex items-center gap-2 group"
+              style={{ backgroundColor: '#FAF6F0', borderColor: '#E6D7C3', color: '#3D2314' }}
+              className="p-2.5 border rounded-xl text-left transition-colors flex items-center gap-2 group cursor-pointer"
             >
-              <Book className="w-4 h-4 text-amber-400 shrink-0 group-hover:scale-110 transition-transform" />
+              <Book className="w-4 h-4 shrink-0 group-hover:scale-110 transition-transform" style={{ color: '#D97706' }} />
               <div className="truncate">
-                <span className="font-bold block text-amber-100 truncate">1984 (Orwell)</span>
-                <span className="text-[10px] text-amber-300-70 font-mono">9788020455826</span>
+                <span className="font-bold block truncate">1984 (Orwell)</span>
+                <span className="text-[10px] font-mono" style={{ color: '#8C593B' }}>9788020455826</span>
               </div>
             </button>
 
             <button
               onClick={() => handleSampleClick('9788073819316')}
-              className="p-2.5 bg-stone-950-80 hover:bg-amber-900-40 border border-amber-800-40 rounded-xl text-left transition-colors flex items-center gap-2 group"
+              style={{ backgroundColor: '#FAF6F0', borderColor: '#E6D7C3', color: '#3D2314' }}
+              className="p-2.5 border rounded-xl text-left transition-colors flex items-center gap-2 group cursor-pointer"
             >
-              <Book className="w-4 h-4 text-amber-400 shrink-0 group-hover:scale-110 transition-transform" />
+              <Book className="w-4 h-4 shrink-0 group-hover:scale-110 transition-transform" style={{ color: '#D97706' }} />
               <div className="truncate">
-                <span className="font-bold block text-amber-100 truncate">Alchymista</span>
-                <span className="text-[10px] text-amber-300-70 font-mono">9788073819316</span>
+                <span className="font-bold block truncate">Alchymista</span>
+                <span className="text-[10px] font-mono" style={{ color: '#8C593B' }}>9788073819316</span>
               </div>
             </button>
           </div>

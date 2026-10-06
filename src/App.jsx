@@ -88,7 +88,10 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-stone-900 text-amber-100 flex flex-col font-sans selection:bg-amber-600 selection:text-amber-950">
+    <div
+      style={{ backgroundColor: '#FAF6F0', color: '#3D2314' }}
+      className="min-h-screen flex flex-col font-sans"
+    >
       {/* Header with Top Left "Knihovna" button */}
       <Header
         libraryCount={libraryBooks.length}

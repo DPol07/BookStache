@@ -84,14 +84,12 @@ export default function ScannerModal({ isOpen, onClose, onScanSuccess, onOpenMan
         const onScanMatch = async (decodedText) => {
           if (!isMounted || isStoppingRef.current) return;
 
-          // Pause video immediately so scanner stops parsing frames
           try {
             if (html5Qrcode.isScanning) {
               html5Qrcode.pause(true);
             }
           } catch (e) {}
 
-          // Stop camera before calling success callback
           await safeStopScanner();
 
           if (isMounted) {
@@ -99,7 +97,6 @@ export default function ScannerModal({ isOpen, onClose, onScanSuccess, onOpenMan
           }
         };
 
-        // Try environment camera first
         try {
           await html5Qrcode.start(
             { facingMode: 'environment' },
@@ -163,16 +160,17 @@ export default function ScannerModal({ isOpen, onClose, onScanSuccess, onOpenMan
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-stone-950 text-amber-100 animate-fadeIn">
+    <div style={{ backgroundColor: '#FAF6F0', color: '#3D2314' }} className="fixed inset-0 z-50 flex flex-col animate-fadeIn">
       {/* Top Header */}
-      <div className="flex items-center justify-between p-4 bg-amber-950-90 border-b border-amber-800-60 backdrop-blur-md z-20">
+      <div style={{ backgroundColor: '#EAE1D3', borderColor: '#E6D7C3' }} className="flex items-center justify-between p-4 border-b z-20">
         <div className="flex items-center gap-2">
-          <Camera className="w-5 h-5 text-amber-400 animate-pulse" />
-          <span className="font-bold text-base text-amber-100 font-serif">Skenování čárového kódu</span>
+          <Camera className="w-5 h-5 text-amber-600 animate-pulse" />
+          <span style={{ color: '#3D2314' }} className="font-bold text-base font-serif">Skenování čárového kódu</span>
         </div>
         <button
           onClick={() => handleSafeClose()}
-          className="p-2 text-amber-300 hover:text-white bg-amber-900-60 rounded-full transition-colors"
+          style={{ backgroundColor: '#D97706', color: '#FFFDF9' }}
+          className="p-2 rounded-full transition-colors cursor-pointer"
           aria-label="Zavřít"
         >
           <X className="w-6 h-6" />
@@ -187,20 +185,16 @@ export default function ScannerModal({ isOpen, onClose, onScanSuccess, onOpenMan
         {/* Custom Visual Frame Overlay */}
         {!scannerError && (
           <div className="absolute inset-0 pointer-events-none flex flex-col items-center justify-center p-6">
-            {/* Dark Mask Surrounding Target Box */}
-            <div className="relative w-72 h-44 border-2 border-amber-500-90 rounded-3xl shadow-[0_0_0_9999px_rgba(28,25,23,0.8)] flex items-center justify-center overflow-hidden">
-              {/* Corner Accents */}
+            <div className="relative w-72 h-44 border-4 border-amber-500 rounded-3xl flex items-center justify-center overflow-hidden">
               <div className="absolute top-2 left-2 w-4 h-4 border-t-4 border-l-4 border-amber-400 rounded-tl-md" />
               <div className="absolute top-2 right-2 w-4 h-4 border-t-4 border-r-4 border-amber-400 rounded-tr-md" />
               <div className="absolute bottom-2 left-2 w-4 h-4 border-b-4 border-l-4 border-amber-400 rounded-bl-md" />
               <div className="absolute bottom-2 right-2 w-4 h-4 border-b-4 border-r-4 border-amber-400 rounded-br-md" />
 
-              {/* Scanning Laser Line Animation */}
-              <div className="w-full h-0.5 bg-gradient-to-r from-transparent via-amber-400 to-transparent shadow-[0_0_12px_#d97706] animate-scanline" />
+              <div className="w-full h-1 bg-amber-500 animate-scanline" />
             </div>
 
-            {/* Instruction Label */}
-            <p className="mt-6 text-xs font-semibold text-amber-100 bg-amber-950-90 px-4 py-2 rounded-full border border-amber-700-60 shadow-lg text-center backdrop-blur-md">
+            <p style={{ backgroundColor: '#EAE1D3', color: '#3D2314', borderColor: '#D97706' }} className="mt-6 text-xs font-semibold px-4 py-2 rounded-full border text-center">
               Naměřte čárový kód na knize do rámečku
             </p>
           </div>
@@ -208,21 +202,21 @@ export default function ScannerModal({ isOpen, onClose, onScanSuccess, onOpenMan
 
         {/* Initializing Spinner */}
         {isInitializing && !scannerError && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center bg-stone-950-90 gap-3">
-            <RefreshCw className="w-8 h-8 text-amber-400 animate-spin" />
-            <p className="text-sm font-medium text-amber-200">Spouštění fotoaparátu...</p>
+          <div style={{ backgroundColor: '#FAF6F0', color: '#3D2314' }} className="absolute inset-0 flex flex-col items-center justify-center gap-3">
+            <RefreshCw className="w-8 h-8 text-amber-600 animate-spin" />
+            <p className="text-sm font-medium">Spouštění fotoaparátu...</p>
           </div>
         )}
 
         {/* Camera Error Fallback View */}
         {scannerError && (
-          <div className="absolute inset-0 p-6 flex flex-col items-center justify-center bg-stone-950 text-center gap-4">
-            <div className="p-4 bg-amber-900-30 text-amber-400 rounded-full border border-amber-600-40">
+          <div style={{ backgroundColor: '#FAF6F0', color: '#3D2314' }} className="absolute inset-0 p-6 flex flex-col items-center justify-center text-center gap-4">
+            <div style={{ backgroundColor: '#EAE1D3', borderColor: '#D97706' }} className="p-4 text-amber-600 rounded-full border">
               <AlertCircle className="w-10 h-10" />
             </div>
             <div>
-              <h3 className="text-lg font-bold text-amber-100 font-serif mb-1">Fotoaparát není k dispozici</h3>
-              <p className="text-xs text-amber-200-70 max-w-xs mx-auto">
+              <h3 className="text-lg font-bold font-serif mb-1">Fotoaparát není k dispozici</h3>
+              <p style={{ color: '#5C3A24' }} className="text-xs max-w-xs mx-auto">
                 {scannerError} Můžete vybrat fotografii s čárovým kódem nebo zadat ISBN ručně.
               </p>
             </div>
@@ -231,7 +225,7 @@ export default function ScannerModal({ isOpen, onClose, onScanSuccess, onOpenMan
       </div>
 
       {/* Bottom Controls */}
-      <div className="p-4 bg-amber-950 border-t border-amber-900 flex flex-col gap-3 z-20">
+      <div style={{ backgroundColor: '#EAE1D3', borderColor: '#E6D7C3' }} className="p-4 border-t flex flex-col gap-3 z-20">
         <input
           type="file"
           ref={fileInputRef}
@@ -243,15 +237,17 @@ export default function ScannerModal({ isOpen, onClose, onScanSuccess, onOpenMan
         <div className="grid grid-cols-2 gap-3">
           <button
             onClick={() => fileInputRef.current?.click()}
-            className="py-3 px-4 bg-amber-900-40 hover:bg-amber-900-70 text-amber-200 font-semibold text-xs rounded-xl border border-amber-700-50 transition-colors flex items-center justify-center gap-2"
+            style={{ backgroundColor: '#FAF6F0', borderColor: '#D97706', color: '#3D2314' }}
+            className="py-3 px-4 font-semibold text-xs rounded-xl border flex items-center justify-center gap-2 cursor-pointer"
           >
-            <Image className="w-4 h-4 text-amber-400" />
+            <Image className="w-4 h-4 text-amber-600" />
             <span>Nahrát fotku</span>
           </button>
 
           <button
             onClick={() => handleSafeClose(onOpenManualInput)}
-            className="py-3 px-4 bg-amber-500-20 hover:bg-amber-500-30 text-amber-300 font-bold text-xs rounded-xl border border-amber-500-40 transition-colors flex items-center justify-center gap-2"
+            style={{ backgroundColor: '#D97706', borderColor: '#C26200', color: '#FFFDF9' }}
+            className="py-3 px-4 font-bold text-xs rounded-xl border flex items-center justify-center gap-2 cursor-pointer"
           >
             <Keyboard className="w-4 h-4" />
             <span>Zadat ISBN</span>
@@ -260,7 +256,8 @@ export default function ScannerModal({ isOpen, onClose, onScanSuccess, onOpenMan
 
         <button
           onClick={() => handleSafeClose()}
-          className="w-full py-3 bg-stone-900-80 hover:bg-stone-900 text-amber-300-70 hover:text-amber-100 font-medium text-xs rounded-xl transition-colors"
+          style={{ backgroundColor: '#FAF6F0', borderColor: '#E6D7C3', color: '#5C3A24' }}
+          className="w-full py-3 border font-medium text-xs rounded-xl cursor-pointer"
         >
           Zrušit skenování
         </button>

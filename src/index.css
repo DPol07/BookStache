@@ -1,36 +1,27 @@
 @import "tailwindcss";
 
 @theme {
-  --color-amber-50: #fffbeb;
-  --color-amber-100: #fef3c7;
-  --color-amber-200: #fde68a;
-  --color-amber-300: #fcd34d;
-  --color-amber-400: #fbbf24;
-  --color-amber-500: #f59e0b;
-  --color-amber-600: #d97706;
-  --color-amber-700: #b45309;
-  --color-amber-800: #92400e;
-  --color-amber-900: #78350f;
-  --color-amber-950: #451a03;
+  --color-cream-100: #FFFDF9;
+  --color-cream-200: #FAF6F0;
+  --color-cream-300: #F5EFE6;
+  --color-cream-400: #EAE1D3;
 
-  --color-stone-50: #fafaf9;
-  --color-stone-100: #f5f5f4;
-  --color-stone-200: #e7e5e4;
-  --color-stone-300: #d6d3d1;
-  --color-stone-400: #a8a29e;
-  --color-stone-500: #78716c;
-  --color-stone-600: #57534e;
-  --color-stone-700: #44403c;
-  --color-stone-800: #292524;
-  --color-stone-900: #1c1917;
-  --color-stone-950: #0c0a09;
+  --color-caramel-400: #E28D2B;
+  --color-caramel-500: #D97706;
+  --color-caramel-600: #C26200;
 
-  --color-rose-500: #f43f5e;
+  --color-brown-400: #8C593B;
+  --color-brown-600: #5C3A24;
+  --color-brown-800: #3D2314;
+  --color-brown-900: #2E1A0E;
+
+  --color-border-warm: #E6D7C3;
+  --color-danger-600: #B91C1C;
 }
 
 :root {
-  color-scheme: light !important;
-  supported-color-schemes: light !important;
+  color-scheme: only light !important;
+  supported-color-schemes: only light !important;
 }
 
 *, *::before, *::after {
@@ -38,9 +29,9 @@
 }
 
 html, body, #root {
-  color-scheme: light !important;
-  background-color: #1c1917 !important; /* Solid dark warm brown */
-  color: #fef3c7 !important; /* Solid warm ivory */
+  color-scheme: only light !important;
+  background-color: #FAF6F0 !important; /* Solid light cream/ivory */
+  color: #3D2314 !important; /* Solid dark warm brown */
   -webkit-text-size-adjust: 100%;
   -webkit-tap-highlight-color: transparent;
   forced-color-adjust: none !important;
@@ -56,84 +47,27 @@ html, body, #root {
 /* Force light color scheme and disable media dark overrides on all devices */
 @media (prefers-color-scheme: dark) {
   :root {
-    color-scheme: light !important;
+    color-scheme: only light !important;
   }
   html, body, #root {
-    color-scheme: light !important;
-    background-color: #1c1917 !important;
-    color: #fef3c7 !important;
+    color-scheme: only light !important;
+    background-color: #FAF6F0 !important;
+    color: #3D2314 !important;
     filter: none !important;
   }
 }
 
-/* Custom helper utilities for exact sRGB RGBA colors */
-.bg-amber-950-90 { background-color: rgba(69, 26, 3, 0.90); }
-.bg-amber-950-80 { background-color: rgba(69, 26, 3, 0.80); }
-.bg-amber-950-60 { background-color: rgba(69, 26, 3, 0.60); }
-.bg-amber-950-40 { background-color: rgba(69, 26, 3, 0.40); }
-.bg-amber-950-30 { background-color: rgba(69, 26, 3, 0.30); }
-
-.bg-amber-900-70 { background-color: rgba(120, 53, 15, 0.70); }
-.bg-amber-900-60 { background-color: rgba(120, 53, 15, 0.60); }
-.bg-amber-900-50 { background-color: rgba(120, 53, 15, 0.50); }
-.bg-amber-900-40 { background-color: rgba(120, 53, 15, 0.40); }
-.bg-amber-900-30 { background-color: rgba(120, 53, 15, 0.30); }
-
-.bg-amber-600-20 { background-color: rgba(217, 119, 6, 0.20); }
-.bg-amber-500-30 { background-color: rgba(245, 158, 11, 0.30); }
-.bg-amber-500-20 { background-color: rgba(245, 158, 11, 0.20); }
-
-.bg-stone-950-90 { background-color: rgba(12, 10, 9, 0.90); }
-.bg-stone-950-85 { background-color: rgba(12, 10, 9, 0.85); }
-.bg-stone-950-80 { background-color: rgba(12, 10, 9, 0.80); }
-.bg-stone-900-80 { background-color: rgba(28, 25, 23, 0.80); }
-
-.bg-rose-500-20 { background-color: rgba(244, 63, 94, 0.20); }
-.bg-rose-500-10 { background-color: rgba(244, 63, 94, 0.10); }
-
-.border-amber-900-80 { border-color: rgba(120, 53, 15, 0.80); }
-.border-amber-900-60 { border-color: rgba(120, 53, 15, 0.60); }
-.border-amber-900-50 { border-color: rgba(120, 53, 15, 0.50); }
-.border-amber-900-40 { border-color: rgba(120, 53, 15, 0.40); }
-
-.border-amber-800-60 { border-color: rgba(146, 64, 14, 0.60); }
-.border-amber-800-50 { border-color: rgba(146, 64, 14, 0.50); }
-.border-amber-800-40 { border-color: rgba(146, 64, 14, 0.40); }
-
-.border-amber-700-80 { border-color: rgba(180, 83, 9, 0.80); }
-.border-amber-700-60 { border-color: rgba(180, 83, 9, 0.60); }
-.border-amber-700-50 { border-color: rgba(180, 83, 9, 0.50); }
-
-.border-amber-600-40 { border-color: rgba(217, 119, 6, 0.40); }
-.border-amber-600-30 { border-color: rgba(217, 119, 6, 0.30); }
-
-.border-amber-500-90 { border-color: rgba(245, 158, 11, 0.90); }
-.border-amber-500-40 { border-color: rgba(245, 158, 11, 0.40); }
-.border-amber-500-20 { border-color: rgba(245, 158, 11, 0.20); }
-
-.border-rose-500-30 { border-color: rgba(244, 63, 94, 0.30); }
-
-.text-amber-500-70 { color: rgba(245, 158, 11, 0.70); }
-.text-amber-500-60 { color: rgba(245, 158, 11, 0.60); }
-.text-amber-400-80 { color: rgba(251, 191, 36, 0.80); }
-.text-amber-400-60 { color: rgba(251, 191, 36, 0.60); }
-.text-amber-400-50 { color: rgba(251, 191, 36, 0.50); }
-.text-amber-300-80 { color: rgba(252, 211, 77, 0.80); }
-.text-amber-300-70 { color: rgba(252, 211, 77, 0.70); }
-.text-amber-200-80 { color: rgba(253, 230, 138, 0.80); }
-.text-amber-200-70 { color: rgba(253, 230, 138, 0.70); }
-
 @keyframes scanline {
   0% {
     transform: translateY(-80px);
-    opacity: 0.2;
+    opacity: 0.3;
   }
   50% {
     opacity: 1;
   }
   100% {
     transform: translateY(80px);
-    opacity: 0.2;
+    opacity: 0.3;
   }
 }
 
