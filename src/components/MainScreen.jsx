@@ -8,10 +8,10 @@ export default function MainScreen({ onStartScan, onOpenManualInput, libraryCoun
       {/* Top Greeting / Info */}
       <div className="text-center mt-2 space-y-1.5 w-full">
         <div
-          style={{ backgroundColor: '#EAE1D3', borderColor: '#D97706', color: '#5C3A24' }}
+          style={{ backgroundColor: '#F2E8D8', borderColor: '#D97706', color: '#5C3A24' }}
           className="inline-flex items-center gap-1.5 px-3.5 py-1.5 border rounded-full text-xs font-bold"
         >
-          <Sparkles className="w-3.5 h-3.5" style={{ color: '#C26200' }} />
+          <Sparkles className="w-3.5 h-3.5" style={{ color: '#D97706' }} />
           <span>Skenování čárových kódů & ISBN</span>
         </div>
         <h1 style={{ color: '#3D2314' }} className="text-2xl sm:text-3xl font-black font-serif pt-2 tracking-tight">
@@ -22,13 +22,13 @@ export default function MainScreen({ onStartScan, onOpenManualInput, libraryCoun
         </p>
       </div>
 
-      {/* Central Big Scan Button in Warm Caramel */}
+      {/* Central Big Scan Button in Soft Caramel */}
       <div className="my-auto py-8 flex flex-col items-center justify-center relative">
         <button
           onClick={onStartScan}
           style={{
             backgroundColor: '#D97706',
-            borderColor: '#3D2314',
+            borderColor: '#5C3A24',
             color: '#FFFDF9'
           }}
           className="relative group w-56 h-56 rounded-full font-black transition-transform active:scale-95 flex flex-col items-center justify-center gap-2 border-4 cursor-pointer"
@@ -39,7 +39,7 @@ export default function MainScreen({ onStartScan, onOpenManualInput, libraryCoun
           <span style={{ color: '#FFFDF9' }} className="text-2xl tracking-wider font-black uppercase font-serif">
             NASKENOVAT
           </span>
-          <span style={{ color: '#3D2314' }} className="text-[10px] font-extrabold uppercase tracking-widest -mt-1">
+          <span style={{ color: '#F2E8D8' }} className="text-[10px] font-extrabold uppercase tracking-widest -mt-1">
             Fotoaparát
           </span>
         </button>
@@ -49,10 +49,10 @@ export default function MainScreen({ onStartScan, onOpenManualInput, libraryCoun
       <div className="w-full space-y-3 mb-2">
         <button
           onClick={onOpenManualInput}
-          style={{ backgroundColor: '#EAE1D3', borderColor: '#D97706', color: '#3D2314' }}
+          style={{ backgroundColor: '#F2E8D8', borderColor: '#D97706', color: '#3D2314' }}
           className="w-full py-4 px-5 border rounded-2xl font-bold text-sm transition-all active:scale-[0.98] flex items-center justify-center gap-2.5 cursor-pointer"
         >
-          <Keyboard className="w-5 h-5" style={{ color: '#C26200' }} />
+          <Keyboard className="w-5 h-5" style={{ color: '#D97706' }} />
           <span>Zadat ISBN ručně</span>
         </button>
 

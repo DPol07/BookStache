@@ -90,7 +90,7 @@ export default function BookDetailModal({ isOpen, book, onClose, onDeleteBook })
           <div style={{ backgroundColor: '#FAF6F0', borderColor: '#E6D7C3' }} className="rounded-2xl p-4 border space-y-3 text-xs">
             <div style={{ borderColor: '#E6D7C3' }} className="flex items-center justify-between py-1.5 border-b">
               <span style={{ color: '#5C3A24' }} className="flex items-center gap-2 font-medium">
-                <Book className="w-4 h-4 text-amber-600 shrink-0" />
+                <Book className="w-4 h-4 shrink-0" style={{ color: '#D97706' }} />
                 Název
               </span>
               <span style={{ color: '#3D2314' }} className="font-bold text-right max-w-[200px] truncate font-serif">{book.title}</span>
@@ -98,7 +98,7 @@ export default function BookDetailModal({ isOpen, book, onClose, onDeleteBook })
 
             <div style={{ borderColor: '#E6D7C3' }} className="flex items-center justify-between py-1.5 border-b">
               <span style={{ color: '#5C3A24' }} className="flex items-center gap-2 font-medium">
-                <Users className="w-4 h-4 text-amber-600 shrink-0" />
+                <Users className="w-4 h-4 shrink-0" style={{ color: '#D97706' }} />
                 Autor
               </span>
               <span style={{ color: '#3D2314' }} className="font-bold text-right max-w-[200px] truncate">{book.author}</span>
@@ -106,7 +106,7 @@ export default function BookDetailModal({ isOpen, book, onClose, onDeleteBook })
 
             <div style={{ borderColor: '#E6D7C3' }} className="flex items-center justify-between py-1.5 border-b">
               <span style={{ color: '#5C3A24' }} className="flex items-center gap-2 font-medium">
-                <Calendar className="w-4 h-4 text-amber-600 shrink-0" />
+                <Calendar className="w-4 h-4 shrink-0" style={{ color: '#D97706' }} />
                 Rok vydání
               </span>
               <span style={{ color: '#3D2314' }} className="font-bold">{book.year}</span>
@@ -114,7 +114,7 @@ export default function BookDetailModal({ isOpen, book, onClose, onDeleteBook })
 
             <div style={{ borderColor: '#E6D7C3' }} className="flex items-center justify-between py-1.5 border-b">
               <span style={{ color: '#5C3A24' }} className="flex items-center gap-2 font-medium">
-                <Building2 className="w-4 h-4 text-amber-600 shrink-0" />
+                <Building2 className="w-4 h-4 shrink-0" style={{ color: '#D97706' }} />
                 Nakladatelství
               </span>
               <span style={{ color: '#3D2314' }} className="font-bold text-right max-w-[200px] truncate">{book.publisher}</span>
@@ -122,7 +122,7 @@ export default function BookDetailModal({ isOpen, book, onClose, onDeleteBook })
 
             <div style={{ borderColor: '#E6D7C3' }} className="flex items-center justify-between py-1.5 border-b">
               <span style={{ color: '#5C3A24' }} className="flex items-center gap-2 font-medium">
-                <Tag className="w-4 h-4 text-amber-600 shrink-0" />
+                <Tag className="w-4 h-4 shrink-0" style={{ color: '#D97706' }} />
                 Žánr
               </span>
               <span style={{ color: '#3D2314' }} className="font-bold text-right max-w-[200px] truncate">{book.genre}</span>
@@ -130,15 +130,15 @@ export default function BookDetailModal({ isOpen, book, onClose, onDeleteBook })
 
             <div style={{ borderColor: '#E6D7C3' }} className="flex items-center justify-between py-1.5 border-b">
               <span style={{ color: '#5C3A24' }} className="flex items-center gap-2 font-medium">
-                <Users className="w-4 h-4 text-amber-600 shrink-0" />
+                <Users className="w-4 h-4 shrink-0" style={{ color: '#D97706' }} />
                 Cílená věková skupina
               </span>
-              <span style={{ color: '#C26200' }} className="font-extrabold">{book.ageGroup}</span>
+              <span style={{ color: '#D97706' }} className="font-extrabold">{book.ageGroup}</span>
             </div>
 
             <div style={{ borderColor: '#E6D7C3' }} className="flex items-center justify-between py-1.5 border-b">
               <span style={{ color: '#5C3A24' }} className="flex items-center gap-2 font-medium">
-                <Globe className="w-4 h-4 text-amber-600 shrink-0" />
+                <Globe className="w-4 h-4 shrink-0" style={{ color: '#D97706' }} />
                 Jazyk
               </span>
               <span style={{ color: '#3D2314' }} className="font-bold">{book.language}</span>
@@ -146,16 +146,16 @@ export default function BookDetailModal({ isOpen, book, onClose, onDeleteBook })
 
             <div style={{ borderColor: '#E6D7C3' }} className="flex items-center justify-between py-1.5 border-b">
               <span style={{ color: '#5C3A24' }} className="flex items-center gap-2 font-medium">
-                <Hash className="w-4 h-4 text-amber-600 shrink-0" />
+                <Hash className="w-4 h-4 shrink-0" style={{ color: '#D97706' }} />
                 ISBN
               </span>
-              <span style={{ color: '#C26200' }} className="font-mono font-bold">{book.isbn}</span>
+              <span style={{ color: '#D97706' }} className="font-mono font-bold">{book.isbn}</span>
             </div>
 
             {formattedDate && (
               <div className="flex items-center justify-between py-1.5">
                 <span style={{ color: '#5C3A24' }} className="flex items-center gap-2 font-medium">
-                  <Clock className="w-4 h-4 text-amber-600 shrink-0" />
+                  <Clock className="w-4 h-4 shrink-0" style={{ color: '#D97706' }} />
                   Uloženo dne
                 </span>
                 <span style={{ color: '#8C593B' }} className="font-medium">{formattedDate}</span>
