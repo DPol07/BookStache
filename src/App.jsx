@@ -28,9 +28,6 @@ export default function App() {
 
   // Handle ISBN search (from scanner or manual entry)
   const handleLookupIsbn = async (rawInput) => {
-    const cleanIsbn = normalizeIsbn(rawInput) || rawInput;
-    const formatted = formatIsbnDisplay(cleanIsbn);
-
     setIsScannerOpen(false);
     setIsManualInputOpen(false);
     setIsLoadingBook(true);
@@ -40,25 +37,7 @@ export default function App() {
       setScannedBookResult({ book: bookData, searched: true });
     } catch (e) {
       console.error('Error fetching book:', e);
-      // Even if fetch throws an error, guarantee a fallback book object
-      setScannedBookResult({
-        book: {
-          id: `book-${Date.now()}`,
-          isbn: formatted || cleanIsbn,
-          rawIsbn: cleanIsbn,
-          title: `Naskenovaná kniha (${formatted || cleanIsbn})`,
-          author: 'Neznámý autor',
-          year: 'Neuvedeno',
-          publisher: 'Neuvedeno',
-          genre: 'Všeobecná literatura',
-          ageGroup: 'Všeobecná veřejnost',
-          language: 'Čeština',
-          cover: `https://www.obalkyknih.cz/file/cover/${cleanIsbn}/medium`,
-          fallbackCover: `https://covers.openlibrary.org/b/isbn/${cleanIsbn}-L.jpg`,
-          scannedAt: new Date().toISOString(),
-        },
-        searched: true,
-      });
+      setScannedBookResult({ book: null, searched: true });
     } finally {
       setIsLoadingBook(false);
     }

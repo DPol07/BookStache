@@ -12,6 +12,20 @@ export function normalizeIsbn(isbn) {
   return clean;
 }
 
+// Fetch helper with timeout
+async function fetchWithTimeout(url, options = {}, timeoutMs = 4000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const response = await fetch(url, { ...options, signal: controller.signal });
+    clearTimeout(timer);
+    return response;
+  } catch (err) {
+    clearTimeout(timer);
+    throw err;
+  }
+}
+
 // Format ISBN for display
 export function formatIsbnDisplay(isbn) {
   const clean = normalizeIsbn(isbn);
@@ -173,7 +187,7 @@ const OFFLINE_CATALOG = {
 async function fetchKnihovnyCz(cleanIsbn) {
   try {
     const url = `https://api.knihovny.cz/api/v1/search?lookfor=${cleanIsbn}&type=Isbn`;
-    const response = await fetch(url);
+    const response = await fetchWithTimeout(url);
     if (!response.ok) return null;
     const data = await response.json();
     if (!data.records || data.records.length === 0) return null;
@@ -205,12 +219,12 @@ async function fetchKnihovnyCz(cleanIsbn) {
 // Fetch book details from Google Books
 async function fetchGoogleBooks(cleanIsbn) {
   try {
-    const response = await fetch(`https://www.googleapis.com/books/v1/volumes?q=isbn:${cleanIsbn}`);
+    const response = await fetchWithTimeout(`https://www.googleapis.com/books/v1/volumes?q=isbn:${cleanIsbn}`);
     if (!response.ok) return null;
     const data = await response.json();
     if (!data.items || data.items.length === 0) {
       // Try search query by raw string
-      const res2 = await fetch(`https://www.googleapis.com/books/v1/volumes?q=${cleanIsbn}`);
+      const res2 = await fetchWithTimeout(`https://www.googleapis.com/books/v1/volumes?q=${cleanIsbn}`);
       if (!res2.ok) return null;
       const data2 = await res2.json();
       if (!data2.items || data2.items.length === 0) return null;
@@ -249,7 +263,7 @@ async function fetchGoogleBooks(cleanIsbn) {
 async function fetchOpenLibrary(cleanIsbn) {
   try {
     const bibUrl = `https://openlibrary.org/api/books?bibkeys=ISBN:${cleanIsbn}&format=json&jscmd=data`;
-    const response = await fetch(bibUrl);
+    const response = await fetchWithTimeout(bibUrl);
     if (!response.ok) return null;
     const data = await response.json();
     const key = `ISBN:${cleanIsbn}`;
@@ -258,7 +272,7 @@ async function fetchOpenLibrary(cleanIsbn) {
     if (!book) {
       // Fallback to search API
       const searchUrl = `https://openlibrary.org/search.json?q=${cleanIsbn}`;
-      const sRes = await fetch(searchUrl);
+      const sRes = await fetchWithTimeout(searchUrl);
       if (!sRes.ok) return null;
       const sData = await sRes.json();
       if (!sData.docs || sData.docs.length === 0) return null;
@@ -312,7 +326,20 @@ export async function fetchBookByIsbn(rawIsbn) {
     return null;
   }
 
-  // 1. Query external APIs in parallel (Knihovny.cz, Google Books, Open Library)
+  // 1. Immediate offline catalog check (Instant result if present)
+  const offlineMatch = OFFLINE_CATALOG[cleanIsbn];
+  if (offlineMatch) {
+    return {
+      id: `${cleanIsbn}-${Date.now()}`,
+      isbn: formatIsbnDisplay(cleanIsbn),
+      rawIsbn: cleanIsbn,
+      ...offlineMatch,
+      fallbackCover: offlineMatch.cover || `https://covers.openlibrary.org/b/isbn/${cleanIsbn}-L.jpg`,
+      scannedAt: new Date().toISOString(),
+    };
+  }
+
+  // 2. Query external APIs in parallel (Knihovny.cz, Google Books, Open Library)
   const [knihovnyResult, gbResult, olResult] = await Promise.allSettled([
     fetchKnihovnyCz(cleanIsbn),
     fetchGoogleBooks(cleanIsbn),
@@ -323,17 +350,18 @@ export async function fetchBookByIsbn(rawIsbn) {
   const gbData = gbResult.status === 'fulfilled' ? gbResult.value : null;
   const olData = olResult.status === 'fulfilled' ? olResult.value : null;
 
-  // 2. Check offline catalog
-  const offlineData = OFFLINE_CATALOG[cleanIsbn];
+  // If no API returned any book data, return null so UI displays "Kniha nebyla nalezena"
+  if (!knihovnyData && !gbData && !olData) {
+    return null;
+  }
 
-  // Merge data prioritizing accuracy (Czech library catalog Knihovny.cz first for Czech books, then Google Books, then Open Library)
-  const title = knihovnyData?.title || gbData?.title || olData?.title || offlineData?.title || `Naskenovaná kniha (${formatIsbnDisplay(cleanIsbn)})`;
-  const author = knihovnyData?.author || gbData?.author || olData?.author || offlineData?.author || 'Neznámý autor';
-  const year = knihovnyData?.year || gbData?.year || olData?.year || offlineData?.year || 'Neuvedeno';
-  const publisher = knihovnyData?.publisher || gbData?.publisher || olData?.publisher || offlineData?.publisher || 'Neuvedeno';
-  const genre = knihovnyData?.genre || gbData?.genre || olData?.genre || offlineData?.genre || 'Všeobecná literatura';
-  const ageGroup = knihovnyData?.ageGroup || gbData?.ageGroup || olData?.ageGroup || offlineData?.ageGroup || 'Všeobecná veřejnost';
-  const language = knihovnyData?.language || gbData?.language || olData?.language || offlineData?.language || 'Čeština';
+  const title = knihovnyData?.title || gbData?.title || olData?.title;
+  const author = knihovnyData?.author || gbData?.author || olData?.author || 'Neznámý autor';
+  const year = knihovnyData?.year || gbData?.year || olData?.year || 'Neuvedeno';
+  const publisher = knihovnyData?.publisher || gbData?.publisher || olData?.publisher || 'Neuvedeno';
+  const genre = knihovnyData?.genre || gbData?.genre || olData?.genre || 'Všeobecná literatura';
+  const ageGroup = knihovnyData?.ageGroup || gbData?.ageGroup || olData?.ageGroup || 'Všeobecná veřejnost';
+  const language = knihovnyData?.language || gbData?.language || olData?.language || 'Čeština';
 
   // Cover fallback priority:
   // 1. ObálkyKnih (obalkyknih.cz)
@@ -343,7 +371,6 @@ export async function fetchBookByIsbn(rawIsbn) {
   if (gbData?.cover) cover = gbData.cover;
   else if (olData?.cover) cover = olData.cover;
   else if (knihovnyData?.cover) cover = knihovnyData.cover;
-  else if (offlineData?.cover) cover = offlineData.cover;
 
   return {
     id: `${cleanIsbn}-${Date.now()}`,
