@@ -56,7 +56,14 @@ export default function ScannerModal({ isOpen, onClose, onScanSuccess, onOpenMan
 
     const config = {
       fps: 10,
-      qrbox: { width: 280, height: 160 },
+      qrbox: (viewfinderWidth, viewfinderHeight) => {
+        const width = Math.max(200, Math.floor(viewfinderWidth * 0.8));
+        const height = Math.max(120, Math.floor(viewfinderHeight * 0.45));
+        return {
+          width: Math.min(width, 300),
+          height: Math.min(height, 180),
+        };
+      },
       formatsToSupport: [
         Html5QrcodeSupportedFormats.EAN_13,
         Html5QrcodeSupportedFormats.EAN_8,
