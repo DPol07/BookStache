@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, BookmarkPlus, RotateCcw, Book, Calendar, Building2, Tag, Users, Globe, Hash, AlertTriangle, RefreshCw, CheckCircle2 } from 'lucide-react';
 
 export default function BookResultModal({
@@ -11,22 +11,28 @@ export default function BookResultModal({
   onOpenManualInput,
 }) {
   const [imageError, setImageError] = useState(false);
+  const [useFallback, setUseFallback] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
+
+  useEffect(() => {
+    setImageError(false);
+    setUseFallback(false);
+    setIsSaved(false);
+  }, [book]);
 
   if (!isOpen) return null;
 
   // Loading State
   if (isLoading) {
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md animate-fadeIn">
-        <div className="w-full max-w-sm p-8 bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl text-center space-y-4">
+      <div style={{ backgroundColor: '#FAF6F0' }} className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-fadeIn">
+        <div style={{ backgroundColor: '#FFFDF9', borderColor: '#E6D7C3', color: '#3D2314' }} className="w-full max-w-sm p-8 border rounded-3xl text-center space-y-4">
           <div className="relative w-16 h-16 mx-auto flex items-center justify-center">
-            <div className="absolute inset-0 rounded-full border-4 border-amber-500/20 animate-ping" />
-            <RefreshCw className="w-8 h-8 text-amber-400 animate-spin" />
+            <RefreshCw className="w-8 h-8 text-amber-600 animate-spin" />
           </div>
           <div>
-            <h3 className="text-lg font-bold text-white">Vyhledávám knihu...</h3>
-            <p className="text-xs text-slate-400 mt-1">Kombinuji veřejné katalogy a knihovní databáze</p>
+            <h3 className="text-lg font-bold font-serif">Vyhledávám knihu...</h3>
+            <p style={{ color: '#5C3A24' }} className="text-xs mt-1">Kombinuji veřejné katalogy a knihovní databáze (Knihovny.cz)</p>
           </div>
         </div>
       </div>
@@ -36,30 +42,32 @@ export default function BookResultModal({
   // Book Not Found State
   if (!book) {
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md animate-fadeIn">
-        <div className="relative w-full max-w-md p-6 bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl text-center">
+      <div style={{ backgroundColor: '#FAF6F0' }} className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-fadeIn">
+        <div style={{ backgroundColor: '#FFFDF9', borderColor: '#E6D7C3', color: '#3D2314' }} className="relative w-full max-w-md p-6 border rounded-3xl text-center">
           {/* Top-Right 'X' Close Button */}
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 p-2 text-slate-400 hover:text-white bg-slate-800/60 hover:bg-slate-800 rounded-full transition-colors"
+            style={{ backgroundColor: '#D97706', color: '#FFFDF9' }}
+            className="absolute top-4 right-4 p-2 rounded-full cursor-pointer"
             aria-label="Zavřít"
           >
             <X className="w-5 h-5" />
           </button>
 
-          <div className="w-14 h-14 mx-auto mb-4 bg-rose-500/10 text-rose-400 rounded-2xl border border-rose-500/20 flex items-center justify-center">
+          <div style={{ backgroundColor: '#EAE1D3', borderColor: '#D97706' }} className="w-14 h-14 mx-auto mb-4 text-amber-600 rounded-2xl border flex items-center justify-center">
             <AlertTriangle className="w-7 h-7" />
           </div>
 
-          <h3 className="text-xl font-bold text-white mb-2">Kniha nebyla nalezena</h3>
-          <p className="text-xs text-slate-400 max-w-xs mx-auto mb-6 leading-relaxed">
+          <h3 className="text-xl font-bold font-serif mb-2">Kniha nebyla nalezena</h3>
+          <p style={{ color: '#5C3A24' }} className="text-xs max-w-xs mx-auto mb-6 leading-relaxed">
             Podle naskenovaného kódu se v dostupných katalozích nepodařilo najít žádné informace o knize. Některé starší knihy nemají čárový kód nebo mají odlišný formát.
           </p>
 
           <div className="space-y-3">
             <button
               onClick={onRetryScan}
-              className="w-full py-3.5 px-4 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-2xl shadow-lg shadow-amber-500/20 transition-all flex items-center justify-center gap-2 text-sm"
+              style={{ backgroundColor: '#D97706', color: '#FFFDF9' }}
+              className="w-full py-3.5 px-4 font-extrabold rounded-2xl flex items-center justify-center gap-2 text-xs font-serif uppercase tracking-wider cursor-pointer"
             >
               <RotateCcw className="w-4 h-4" />
               Zkusit skenovat znovu
@@ -70,7 +78,8 @@ export default function BookResultModal({
                 onClose();
                 onOpenManualInput();
               }}
-              className="w-full py-3 px-4 bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold rounded-2xl border border-slate-700 transition-colors text-sm"
+              style={{ backgroundColor: '#EAE1D3', borderColor: '#D97706', color: '#3D2314' }}
+              className="w-full py-3 px-4 font-semibold rounded-2xl border text-xs cursor-pointer"
             >
               Zadat ISBN ručně
             </button>
@@ -80,6 +89,17 @@ export default function BookResultModal({
     );
   }
 
+  // Handle Cover Image Error
+  const handleImageError = () => {
+    if (!useFallback && book.fallbackCover && book.cover !== book.fallbackCover) {
+      setUseFallback(true);
+    } else {
+      setImageError(true);
+    }
+  };
+
+  const currentCoverUrl = useFallback ? book.fallbackCover : book.cover;
+
   // Book Found State
   const handleSave = () => {
     setIsSaved(true);
@@ -87,126 +107,135 @@ export default function BookResultModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/85 backdrop-blur-md animate-fadeIn overflow-y-auto">
-      <div className="relative w-full max-w-md my-auto bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+    <div style={{ backgroundColor: '#FAF6F0' }} className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 animate-fadeIn overflow-y-auto">
+      <div style={{ backgroundColor: '#FFFDF9', borderColor: '#E6D7C3' }} className="relative w-full max-w-md my-auto border rounded-3xl overflow-hidden flex flex-col max-h-[90vh]">
         {/* Top-Right 'X' Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-3.5 right-3.5 z-20 p-2 text-slate-400 hover:text-white bg-slate-950/70 hover:bg-slate-950 rounded-full transition-colors border border-slate-800/80 backdrop-blur-md"
+          style={{ backgroundColor: '#D97706', color: '#FFFDF9' }}
+          className="absolute top-3.5 right-3.5 z-20 p-2 rounded-full cursor-pointer"
           aria-label="Zavřít"
         >
           <X className="w-5 h-5" />
         </button>
 
         {/* Modal Scrollable Content */}
-        <div className="overflow-y-auto p-5 space-y-5">
+        <div style={{ color: '#3D2314' }} className="overflow-y-auto p-5 space-y-5">
           {/* Cover & Hero Section */}
           <div className="flex flex-col sm:flex-row gap-4 items-center sm:items-start text-center sm:text-left pt-2">
-            {/* Book Cover */}
-            <div className="relative w-28 h-40 shrink-0 bg-slate-800 rounded-xl overflow-hidden border border-slate-700/80 shadow-lg flex items-center justify-center">
-              {book.cover && !imageError ? (
+            {/* Book Cover / Placeholder */}
+            <div style={{ backgroundColor: '#EAE1D3', borderColor: '#D97706' }} className="relative w-28 h-40 shrink-0 rounded-xl overflow-hidden border flex items-center justify-center">
+              {currentCoverUrl && !imageError ? (
                 <img
-                  src={book.cover}
+                  src={currentCoverUrl}
                   alt={book.title}
-                  onError={() => setImageError(true)}
+                  onError={handleImageError}
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <div className="flex flex-col items-center justify-center p-2 text-center text-slate-400 gap-1.5 w-full h-full bg-gradient-to-br from-slate-800 to-slate-900 border border-amber-500/20">
-                  <Book className="w-8 h-8 text-amber-400 mb-1" />
-                  <span className="text-[10px] font-bold text-amber-300 leading-tight line-clamp-3 px-1">{book.title}</span>
-                  <span className="text-[9px] text-slate-400 truncate max-w-full px-1">{book.author}</span>
+                <div style={{ backgroundColor: '#EAE1D3', color: '#3D2314' }} className="flex flex-col items-center justify-between p-3 text-center w-full h-full">
+                  <div style={{ backgroundColor: '#D97706', color: '#FFFDF9' }} className="p-1.5 rounded-full mt-2">
+                    <Book className="w-6 h-6" />
+                  </div>
+                  <div className="space-y-1 my-auto">
+                    <span className="text-[10px] font-bold leading-snug line-clamp-3 block px-1 font-serif">{book.title}</span>
+                    <span style={{ color: '#5C3A24' }} className="text-[9px] truncate max-w-full block px-1">{book.author}</span>
+                  </div>
+                  <span style={{ color: '#8C593B', borderColor: '#E6D7C3' }} className="text-[8px] font-mono border-t pt-1 w-full truncate">
+                    {book.isbn}
+                  </span>
                 </div>
               )}
             </div>
 
             {/* Title & Author Header */}
             <div className="space-y-1.5 flex-1">
-              <span className="inline-block px-2.5 py-0.5 bg-amber-500/10 text-amber-400 border border-amber-500/20 text-[11px] font-bold rounded-full uppercase tracking-wider">
+              <span style={{ backgroundColor: '#EAE1D3', color: '#3D2314', borderColor: '#D97706' }} className="inline-block px-2.5 py-0.5 border text-[11px] font-bold rounded-full uppercase tracking-wider font-serif">
                 Naskenovaná kniha
               </span>
-              <h2 className="text-xl font-extrabold text-white leading-tight">
+              <h2 style={{ color: '#3D2314' }} className="text-xl font-extrabold font-serif leading-tight">
                 {book.title}
               </h2>
-              <p className="text-sm font-semibold text-amber-400/90">
+              <p style={{ color: '#C26200' }} className="text-sm font-bold">
                 {book.author}
               </p>
             </div>
           </div>
 
           {/* Detailed Metadata Grid */}
-          <div className="bg-slate-800/50 rounded-2xl p-4 border border-slate-700/50 space-y-3 text-xs">
-            <div className="flex items-center justify-between py-1.5 border-b border-slate-700/40">
-              <span className="flex items-center gap-2 text-slate-400 font-medium">
-                <Book className="w-4 h-4 text-amber-400 shrink-0" />
+          <div style={{ backgroundColor: '#FAF6F0', borderColor: '#E6D7C3' }} className="rounded-2xl p-4 border space-y-3 text-xs">
+            <div style={{ borderColor: '#E6D7C3' }} className="flex items-center justify-between py-1.5 border-b">
+              <span style={{ color: '#5C3A24' }} className="flex items-center gap-2 font-medium">
+                <Book className="w-4 h-4 text-amber-600 shrink-0" />
                 Název
               </span>
-              <span className="font-semibold text-white text-right max-w-[200px] truncate">{book.title}</span>
+              <span style={{ color: '#3D2314' }} className="font-bold text-right max-w-[200px] truncate font-serif">{book.title}</span>
             </div>
 
-            <div className="flex items-center justify-between py-1.5 border-b border-slate-700/40">
-              <span className="flex items-center gap-2 text-slate-400 font-medium">
-                <Users className="w-4 h-4 text-amber-400 shrink-0" />
+            <div style={{ borderColor: '#E6D7C3' }} className="flex items-center justify-between py-1.5 border-b">
+              <span style={{ color: '#5C3A24' }} className="flex items-center gap-2 font-medium">
+                <Users className="w-4 h-4 text-amber-600 shrink-0" />
                 Autor
               </span>
-              <span className="font-semibold text-white text-right max-w-[200px] truncate">{book.author}</span>
+              <span style={{ color: '#3D2314' }} className="font-bold text-right max-w-[200px] truncate">{book.author}</span>
             </div>
 
-            <div className="flex items-center justify-between py-1.5 border-b border-slate-700/40">
-              <span className="flex items-center gap-2 text-slate-400 font-medium">
-                <Calendar className="w-4 h-4 text-amber-400 shrink-0" />
+            <div style={{ borderColor: '#E6D7C3' }} className="flex items-center justify-between py-1.5 border-b">
+              <span style={{ color: '#5C3A24' }} className="flex items-center gap-2 font-medium">
+                <Calendar className="w-4 h-4 text-amber-600 shrink-0" />
                 Rok vydání
               </span>
-              <span className="font-semibold text-white">{book.year}</span>
+              <span style={{ color: '#3D2314' }} className="font-bold">{book.year}</span>
             </div>
 
-            <div className="flex items-center justify-between py-1.5 border-b border-slate-700/40">
-              <span className="flex items-center gap-2 text-slate-400 font-medium">
-                <Building2 className="w-4 h-4 text-amber-400 shrink-0" />
+            <div style={{ borderColor: '#E6D7C3' }} className="flex items-center justify-between py-1.5 border-b">
+              <span style={{ color: '#5C3A24' }} className="flex items-center gap-2 font-medium">
+                <Building2 className="w-4 h-4 text-amber-600 shrink-0" />
                 Nakladatelství
               </span>
-              <span className="font-semibold text-white text-right max-w-[200px] truncate">{book.publisher}</span>
+              <span style={{ color: '#3D2314' }} className="font-bold text-right max-w-[200px] truncate">{book.publisher}</span>
             </div>
 
-            <div className="flex items-center justify-between py-1.5 border-b border-slate-700/40">
-              <span className="flex items-center gap-2 text-slate-400 font-medium">
-                <Tag className="w-4 h-4 text-amber-400 shrink-0" />
+            <div style={{ borderColor: '#E6D7C3' }} className="flex items-center justify-between py-1.5 border-b">
+              <span style={{ color: '#5C3A24' }} className="flex items-center gap-2 font-medium">
+                <Tag className="w-4 h-4 text-amber-600 shrink-0" />
                 Žánr
               </span>
-              <span className="font-semibold text-white text-right max-w-[200px] truncate">{book.genre}</span>
+              <span style={{ color: '#3D2314' }} className="font-bold text-right max-w-[200px] truncate">{book.genre}</span>
             </div>
 
-            <div className="flex items-center justify-between py-1.5 border-b border-slate-700/40">
-              <span className="flex items-center gap-2 text-slate-400 font-medium">
-                <Users className="w-4 h-4 text-amber-400 shrink-0" />
+            <div style={{ borderColor: '#E6D7C3' }} className="flex items-center justify-between py-1.5 border-b">
+              <span style={{ color: '#5C3A24' }} className="flex items-center gap-2 font-medium">
+                <Users className="w-4 h-4 text-amber-600 shrink-0" />
                 Cílená věková skupina
               </span>
-              <span className="font-semibold text-amber-300">{book.ageGroup}</span>
+              <span style={{ color: '#C26200' }} className="font-extrabold">{book.ageGroup}</span>
             </div>
 
-            <div className="flex items-center justify-between py-1.5 border-b border-slate-700/40">
-              <span className="flex items-center gap-2 text-slate-400 font-medium">
-                <Globe className="w-4 h-4 text-amber-400 shrink-0" />
+            <div style={{ borderColor: '#E6D7C3' }} className="flex items-center justify-between py-1.5 border-b">
+              <span style={{ color: '#5C3A24' }} className="flex items-center gap-2 font-medium">
+                <Globe className="w-4 h-4 text-amber-600 shrink-0" />
                 Jazyk
               </span>
-              <span className="font-semibold text-white">{book.language}</span>
+              <span style={{ color: '#3D2314' }} className="font-bold">{book.language}</span>
             </div>
 
             <div className="flex items-center justify-between py-1.5">
-              <span className="flex items-center gap-2 text-slate-400 font-medium">
-                <Hash className="w-4 h-4 text-amber-400 shrink-0" />
+              <span style={{ color: '#5C3A24' }} className="flex items-center gap-2 font-medium">
+                <Hash className="w-4 h-4 text-amber-600 shrink-0" />
                 ISBN
               </span>
-              <span className="font-mono font-bold text-amber-400">{book.isbn}</span>
+              <span style={{ color: '#C26200' }} className="font-mono font-bold">{book.isbn}</span>
             </div>
           </div>
         </div>
 
         {/* Bottom Action Bar */}
-        <div className="p-4 bg-slate-900 border-t border-slate-800/80 flex items-center gap-3 shrink-0">
+        <div style={{ backgroundColor: '#EAE1D3', borderColor: '#E6D7C3' }} className="p-4 border-t flex items-center gap-3 shrink-0">
           <button
             onClick={onClose}
-            className="flex-1 py-3.5 px-4 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white font-semibold text-sm rounded-2xl border border-slate-700 transition-colors text-center"
+            style={{ backgroundColor: '#FAF6F0', borderColor: '#E6D7C3', color: '#3D2314' }}
+            className="flex-1 py-3.5 px-4 font-bold text-xs rounded-2xl border text-center cursor-pointer"
           >
             Zrušit
           </button>
@@ -214,7 +243,11 @@ export default function BookResultModal({
           <button
             onClick={handleSave}
             disabled={isSaved}
-            className="flex-1 py-3.5 px-4 bg-amber-500 hover:bg-amber-400 disabled:bg-emerald-600 text-slate-950 disabled:text-white font-bold text-sm rounded-2xl shadow-lg shadow-amber-500/20 transition-all flex items-center justify-center gap-2"
+            style={{
+              backgroundColor: isSaved ? '#15803D' : '#D97706',
+              color: '#FFFDF9'
+            }}
+            className="flex-1 py-3.5 px-4 font-extrabold text-xs rounded-2xl flex items-center justify-center gap-2 uppercase tracking-wider font-serif cursor-pointer"
           >
             {isSaved ? (
               <>
