@@ -22,24 +22,24 @@ export default function MainScreen({ onStartScan, onOpenManualInput, libraryCoun
         </p>
       </div>
 
-      {/* Central Big Scan Button in Soft Caramel */}
+      {/* Central Big Scan Button in Warm Caramel / Creamy Brown */}
       <div className="my-auto py-8 flex flex-col items-center justify-center relative">
         <button
           onClick={onStartScan}
           style={{
-            backgroundColor: '#D97706',
-            borderColor: '#5C3A24',
+            backgroundColor: '#A35212',
+            borderColor: '#3D2314',
             color: '#FFFDF9'
           }}
-          className="relative group w-56 h-56 rounded-full font-black transition-transform active:scale-95 flex flex-col items-center justify-center gap-2 border-4 cursor-pointer"
+          className="relative group w-64 h-64 sm:w-72 sm:h-72 rounded-full font-black transition-transform active:scale-95 flex flex-col items-center justify-center gap-3 border-4 shadow-lg cursor-pointer"
         >
           {/* Logo symbol on central button */}
-          <BookStacheLogo className="w-16 h-16 group-hover:scale-105 transition-transform" />
+          <BookStacheLogo className="w-20 h-20 group-hover:scale-105 transition-transform" />
 
-          <span style={{ color: '#FFFDF9' }} className="text-2xl tracking-wider font-black uppercase font-serif">
+          <span style={{ color: '#FFFDF9' }} className="text-2xl sm:text-3xl tracking-wider font-black uppercase font-serif">
             NASKENOVAT
           </span>
-          <span style={{ color: '#F2E8D8' }} className="text-[10px] font-extrabold uppercase tracking-widest -mt-1">
+          <span style={{ color: '#F2E8D8' }} className="text-xs font-extrabold uppercase tracking-widest -mt-1">
             Fotoaparát
           </span>
         </button>

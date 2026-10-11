@@ -3,8 +3,7 @@ import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig({
-  // GitHub Pages serves the project under /BookStache/.
-  base: '/BookStache/',
+  base: './',
   plugins: [
     react(),
     tailwindcss(),
@@ -15,9 +14,9 @@ export default defineConfig({
       output: {
         entryFileNames: 'assets/app.js',
         chunkFileNames: 'assets/[name].js',
-        assetFileNames: 'assets/app.[ext]',
-      },
-    },
+        assetFileNames: 'assets/app.[ext]'
+      }
+    }
   },
   server: {
     port: 3000,
