@@ -7,7 +7,7 @@ import BookResultModal from './components/BookResultModal';
 import LibraryModal from './components/LibraryModal';
 import BookDetailModal from './components/BookDetailModal';
 
-import { fetchBookByIsbn } from './services/bookApi';
+import { fetchBookByIsbn, normalizeIsbn, formatIsbnDisplay } from './services/bookApi';
 import { getSavedBooks, saveBook, deleteBook } from './services/storage';
 
 export default function App() {
@@ -27,14 +27,13 @@ export default function App() {
   }, []);
 
   // Handle ISBN search (from scanner or manual entry)
-  const handleLookupIsbn = async (isbn) => {
+  const handleLookupIsbn = async (rawInput) => {
     setIsScannerOpen(false);
     setIsManualInputOpen(false);
     setIsLoadingBook(true);
-    setScannedBookResult({ book: null, searched: true });
 
     try {
-      const bookData = await fetchBookByIsbn(isbn);
+      const bookData = await fetchBookByIsbn(rawInput);
       setScannedBookResult({ book: bookData, searched: true });
     } catch (e) {
       console.error('Error fetching book:', e);
@@ -51,10 +50,9 @@ export default function App() {
     const updated = getSavedBooks();
     setLibraryBooks(updated);
 
-    // Smooth transition back to main screen
     setTimeout(() => {
       setScannedBookResult(null);
-    }, 400);
+    }, 300);
   };
 
   // Delete book from library
@@ -69,7 +67,10 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-amber-500 selection:text-slate-950">
+    <div
+      style={{ backgroundColor: '#FAF6F0', color: '#3D2314' }}
+      className="min-h-screen flex flex-col font-sans"
+    >
       {/* Header with Top Left "Knihovna" button */}
       <Header
         libraryCount={libraryBooks.length}

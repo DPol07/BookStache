@@ -1,5 +1,17 @@
 import React from 'react';
-import { Library, BookMarked } from 'lucide-react';
+import { Library } from 'lucide-react';
+
+import logoOriginal from '../assets/logo-original.png';
+
+export function BookStacheLogo({ className = "w-8 h-8" }) {
+  return (
+    <img
+      src={logoOriginal}
+      alt="BookStache Logo"
+      className={`${className} object-contain`}
+    />
+  );
+}
 
 export default function Header({ libraryCount, onOpenLibrary }) {
   return (
@@ -7,26 +19,22 @@ export default function Header({ libraryCount, onOpenLibrary }) {
       {/* Top Left Library Icon Button */}
       <button
         onClick={onOpenLibrary}
-        className="group relative flex items-center gap-2.5 px-4 py-2.5 bg-slate-800/80 hover:bg-slate-800 text-slate-200 border border-slate-700/80 rounded-2xl shadow-md transition-all active:scale-95"
+        style={{ backgroundColor: '#F2E8D8', borderColor: '#D97706', color: '#3D2314' }}
+        className="group relative flex items-center gap-2.5 px-4 py-2.5 border rounded-2xl transition-transform active:scale-95 cursor-pointer"
         aria-label="Knihovna"
       >
-        <Library className="w-5 h-5 text-amber-400 group-hover:scale-110 transition-transform" />
-        <span className="font-semibold text-sm">Knihovna</span>
+        <Library className="w-5 h-5" style={{ color: '#D97706' }} />
+        <span className="font-bold text-sm tracking-wide">Knihovna</span>
         {libraryCount > 0 && (
-          <span className="flex items-center justify-center min-w-[20px] h-5 px-1.5 text-xs font-bold text-slate-950 bg-amber-400 rounded-full">
+          <span style={{ backgroundColor: '#D97706', color: '#FFFDF9' }} className="flex items-center justify-center min-w-[20px] h-5 px-1.5 text-xs font-black rounded-full">
             {libraryCount}
           </span>
         )}
       </button>
 
-      {/* App Branding Title */}
+      {/* App Branding Title & Logo */}
       <div className="flex items-center gap-2">
-        <div className="p-1.5 bg-amber-500/20 rounded-xl border border-amber-500/30">
-          <BookMarked className="w-5 h-5 text-amber-400" />
-        </div>
-        <span className="text-xl font-black tracking-tight text-white">
-          Book<span className="text-amber-400">Stache</span>
-        </span>
+        <img src={logoOriginal} alt="BookStache Logo" className="h-10 w-auto object-contain" />
       </div>
     </header>
   );

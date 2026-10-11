@@ -1,15 +1,35 @@
-// Book API service combining Google Books, Open Library, ObálkyKnih, and offline catalog fallback
+// Book API service combining Google Books, Open Library, Knihovny.cz, ObálkyKnih, and fallback catalog
 
-// Helper to normalize ISBN
+// Helper to normalize ISBN / EAN barcode
 export function normalizeIsbn(isbn) {
   if (!isbn) return '';
-  return isbn.replace(/[^0-9X]/gi, '').toUpperCase();
+  const clean = String(isbn).replace(/[^0-9X]/gi, '').toUpperCase();
+  // Extract 13-digit EAN/ISBN starting with 978 or 979 if surrounded by noise
+  const match13 = clean.match(/(978|979)\d{10}/);
+  if (match13) return match13[0];
+  const match10 = clean.match(/\d{9}[0-9X]/);
+  if (match10) return match10[0];
+  return clean;
 }
 
-// Format ISBN for clean display
+// Fetch helper with timeout
+async function fetchWithTimeout(url, options = {}, timeoutMs = 4000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const response = await fetch(url, { ...options, signal: controller.signal });
+    clearTimeout(timer);
+    return response;
+  } catch (err) {
+    clearTimeout(timer);
+    throw err;
+  }
+}
+
+// Format ISBN for display
 export function formatIsbnDisplay(isbn) {
   const clean = normalizeIsbn(isbn);
-  if (clean.length === 13 && clean.startsWith('978')) {
+  if (clean.length === 13 && (clean.startsWith('978') || clean.startsWith('979'))) {
     return `${clean.slice(0, 3)}-${clean.slice(3, 5)}-${clean.slice(5, 10)}-${clean.slice(10, 12)}-${clean.slice(12)}`;
   }
   return clean;
@@ -93,7 +113,7 @@ function inferAgeGroup(categories, title = '', description = '') {
   return 'Všeobecná veřejnost';
 }
 
-// Built-in offline backup catalog for high reliability
+// Built-in offline backup catalog
 const OFFLINE_CATALOG = {
   '9788000058825': {
     title: 'Harry Potter a Kámen mudrců',
@@ -163,13 +183,53 @@ const OFFLINE_CATALOG = {
   }
 };
 
+// Fetch book details from Knihovny.cz API (Czech National Union Catalog API)
+async function fetchKnihovnyCz(cleanIsbn) {
+  try {
+    const url = `https://api.knihovny.cz/api/v1/search?lookfor=${cleanIsbn}&type=Isbn`;
+    const response = await fetchWithTimeout(url);
+    if (!response.ok) return null;
+    const data = await response.json();
+    if (!data.records || data.records.length === 0) return null;
+
+    const record = data.records[0];
+    const title = record.title || '';
+    const author = record.authors ? (Array.isArray(record.authors) ? record.authors.join(', ') : record.authors) : '';
+    const year = record.publishDate ? String(record.publishDate) : '';
+    const publisher = record.publisher ? (Array.isArray(record.publisher) ? record.publisher[0] : record.publisher) : '';
+    const genre = translateGenre(record.genres || record.topic);
+    const cover = record.cover ? `https://www.obalkyknih.cz/file/cover/${cleanIsbn}/medium` : null;
+
+    return {
+      title,
+      author,
+      year,
+      publisher,
+      genre,
+      ageGroup: inferAgeGroup(genre, title),
+      language: 'Čeština',
+      cover,
+    };
+  } catch (e) {
+    console.warn('Knihovny.cz fetch error:', e);
+    return null;
+  }
+}
+
 // Fetch book details from Google Books
 async function fetchGoogleBooks(cleanIsbn) {
   try {
-    const response = await fetch(`https://www.googleapis.com/books/v1/volumes?q=isbn:${cleanIsbn}`);
+    const response = await fetchWithTimeout(`https://www.googleapis.com/books/v1/volumes?q=isbn:${cleanIsbn}`);
     if (!response.ok) return null;
     const data = await response.json();
-    if (!data.items || data.items.length === 0) return null;
+    if (!data.items || data.items.length === 0) {
+      // Try search query by raw string
+      const res2 = await fetchWithTimeout(`https://www.googleapis.com/books/v1/volumes?q=${cleanIsbn}`);
+      if (!res2.ok) return null;
+      const data2 = await res2.json();
+      if (!data2.items || data2.items.length === 0) return null;
+      data.items = data2.items;
+    }
 
     const info = data.items[0].volumeInfo;
     const year = info.publishedDate ? info.publishedDate.slice(0, 4) : '';
@@ -181,7 +241,7 @@ async function fetchGoogleBooks(cleanIsbn) {
       ? coverUrl.replace(/^http:/, 'https:').replace('&edge=curl', '')
       : null;
 
-    const lang = info.language ? (LANGUAGE_MAP[info.language.toLowerCase()] || info.language.toUpperCase()) : 'Nespecifikováno';
+    const lang = info.language ? (LANGUAGE_MAP[info.language.toLowerCase()] || info.language.toUpperCase()) : 'Čeština';
 
     return {
       title: info.title || '',
@@ -203,7 +263,7 @@ async function fetchGoogleBooks(cleanIsbn) {
 async function fetchOpenLibrary(cleanIsbn) {
   try {
     const bibUrl = `https://openlibrary.org/api/books?bibkeys=ISBN:${cleanIsbn}&format=json&jscmd=data`;
-    const response = await fetch(bibUrl);
+    const response = await fetchWithTimeout(bibUrl);
     if (!response.ok) return null;
     const data = await response.json();
     const key = `ISBN:${cleanIsbn}`;
@@ -211,8 +271,8 @@ async function fetchOpenLibrary(cleanIsbn) {
 
     if (!book) {
       // Fallback to search API
-      const searchUrl = `https://openlibrary.org/search.json?isbn=${cleanIsbn}`;
-      const sRes = await fetch(searchUrl);
+      const searchUrl = `https://openlibrary.org/search.json?q=${cleanIsbn}`;
+      const sRes = await fetchWithTimeout(searchUrl);
       if (!sRes.ok) return null;
       const sData = await sRes.json();
       if (!sData.docs || sData.docs.length === 0) return null;
@@ -224,7 +284,7 @@ async function fetchOpenLibrary(cleanIsbn) {
         publisher: doc.publisher ? doc.publisher[0] : '',
         genre: translateGenre(doc.subject),
         ageGroup: inferAgeGroup(doc.subject, doc.title),
-        language: doc.language ? (LANGUAGE_MAP[doc.language[0]] || doc.language[0]) : 'Nespecifikováno',
+        language: doc.language ? (LANGUAGE_MAP[doc.language[0]] || doc.language[0]) : 'Čeština',
         cover: doc.cover_i ? `https://covers.openlibrary.org/b/id/${doc.cover_i}-L.jpg` : `https://covers.openlibrary.org/b/isbn/${cleanIsbn}-L.jpg`,
       };
     }
@@ -241,7 +301,7 @@ async function fetchOpenLibrary(cleanIsbn) {
       cover = `https://covers.openlibrary.org/b/isbn/${cleanIsbn}-L.jpg`;
     }
 
-    const lang = book.languages ? (LANGUAGE_MAP[book.languages[0]?.key?.replace('/languages/', '')] || 'Čeština') : 'Nespecifikováno';
+    const lang = book.languages ? (LANGUAGE_MAP[book.languages[0]?.key?.replace('/languages/', '')] || 'Čeština') : 'Čeština';
 
     return {
       title: book.title || '',
@@ -262,47 +322,61 @@ async function fetchOpenLibrary(cleanIsbn) {
 // Primary Aggregator Function
 export async function fetchBookByIsbn(rawIsbn) {
   const cleanIsbn = normalizeIsbn(rawIsbn);
-  if (!cleanIsbn || cleanIsbn.length < 9) {
+  if (!cleanIsbn || cleanIsbn.length < 7) {
     return null;
   }
 
-  // 1. Query external APIs in parallel
-  const [gbResult, olResult] = await Promise.allSettled([
+  // 1. Immediate offline catalog check (Instant result if present)
+  const offlineMatch = OFFLINE_CATALOG[cleanIsbn];
+  if (offlineMatch) {
+    return {
+      id: `${cleanIsbn}-${Date.now()}`,
+      isbn: formatIsbnDisplay(cleanIsbn),
+      rawIsbn: cleanIsbn,
+      ...offlineMatch,
+      fallbackCover: offlineMatch.cover || `https://covers.openlibrary.org/b/isbn/${cleanIsbn}-L.jpg`,
+      scannedAt: new Date().toISOString(),
+    };
+  }
+
+  // 2. Query external APIs in parallel (Knihovny.cz, Google Books, Open Library)
+  const [knihovnyResult, gbResult, olResult] = await Promise.allSettled([
+    fetchKnihovnyCz(cleanIsbn),
     fetchGoogleBooks(cleanIsbn),
     fetchOpenLibrary(cleanIsbn),
   ]);
 
+  const knihovnyData = knihovnyResult.status === 'fulfilled' ? knihovnyResult.value : null;
   const gbData = gbResult.status === 'fulfilled' ? gbResult.value : null;
   const olData = olResult.status === 'fulfilled' ? olResult.value : null;
 
-  // 2. Check offline fallback if both failed or returned empty
-  const offlineData = OFFLINE_CATALOG[cleanIsbn];
-
-  if (!gbData && !olData && !offlineData) {
+  // If no API returned any book data, return null so UI displays "Kniha nebyla nalezena"
+  if (!knihovnyData && !gbData && !olData) {
     return null;
   }
 
-  // Merge data prioritizing accuracy
-  const title = gbData?.title || olData?.title || offlineData?.title || '';
-  const author = gbData?.author || olData?.author || offlineData?.author || 'Neznámý autor';
-  const year = gbData?.year || olData?.year || offlineData?.year || 'Neuvedeno';
-  const publisher = gbData?.publisher || olData?.publisher || offlineData?.publisher || 'Neuvedeno';
-  const genre = gbData?.genre || olData?.genre || offlineData?.genre || 'Všeobecná literatura';
-  const ageGroup = gbData?.ageGroup || olData?.ageGroup || offlineData?.ageGroup || 'Všeobecná veřejnost';
-  const language = gbData?.language || olData?.language || offlineData?.language || 'Čeština';
+  const title = knihovnyData?.title || gbData?.title || olData?.title;
+  const author = knihovnyData?.author || gbData?.author || olData?.author || 'Neznámý autor';
+  const year = knihovnyData?.year || gbData?.year || olData?.year || 'Neuvedeno';
+  const publisher = knihovnyData?.publisher || gbData?.publisher || olData?.publisher || 'Neuvedeno';
+  const genre = knihovnyData?.genre || gbData?.genre || olData?.genre || 'Všeobecná literatura';
+  const ageGroup = knihovnyData?.ageGroup || gbData?.ageGroup || olData?.ageGroup || 'Všeobecná veřejnost';
+  const language = knihovnyData?.language || gbData?.language || olData?.language || 'Čeština';
 
-  // Cover fallback order
-  let cover = gbData?.cover || olData?.cover || offlineData?.cover || null;
-
-  if (!cover) {
-    cover = `https://covers.openlibrary.org/b/isbn/${cleanIsbn}-L.jpg`;
-  }
+  // Cover fallback priority:
+  // 1. ObálkyKnih (obalkyknih.cz)
+  // 2. Google Books cover
+  // 3. Open Library cover
+  let cover = `https://www.obalkyknih.cz/file/cover/${cleanIsbn}/medium`;
+  if (gbData?.cover) cover = gbData.cover;
+  else if (olData?.cover) cover = olData.cover;
+  else if (knihovnyData?.cover) cover = knihovnyData.cover;
 
   return {
     id: `${cleanIsbn}-${Date.now()}`,
     isbn: formatIsbnDisplay(cleanIsbn),
     rawIsbn: cleanIsbn,
-    title: title || `Kniha (ISBN ${cleanIsbn})`,
+    title: title,
     author: author,
     year: year,
     publisher: publisher,
@@ -310,6 +384,7 @@ export async function fetchBookByIsbn(rawIsbn) {
     ageGroup: ageGroup,
     language: language,
     cover: cover,
+    fallbackCover: `https://covers.openlibrary.org/b/isbn/${cleanIsbn}-L.jpg`,
     scannedAt: new Date().toISOString(),
   };
 }
