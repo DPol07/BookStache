@@ -1,28 +1,61 @@
 import React from 'react';
 import { Library } from 'lucide-react';
 
-// Clean vector logo mark for BookStache (Book + Moustache motif)
+// Clean vector logo mark for BookStache (Closed Book viewed from side + Moustache motif)
 export function BookStacheLogo({ className = "w-8 h-8", color = "#3D2314" }) {
   return (
     <svg className={className} viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-      {/* Book base */}
+      {/* Closed Book - Top Page Block Edge (Cream / Highlighted top of closed pages) */}
       <path
-        d="M20 28C20 28 35 22 50 28C65 22 80 28 80 28V72C80 72 65 66 50 72C35 66 20 72 20 72V28Z"
-        fill={color}
-        fillOpacity="0.12"
-        stroke={color}
-        strokeWidth="6"
-        strokeLinecap="round"
-        strokeLinejoin="round"
+        d="M 37.5 21 C 45 18, 55 18, 57.5 21 L 57.5 25.5 C 55 22.5, 45 22.5, 37.5 25.5 Z"
+        fill="#FAF6F0"
+        opacity="0.9"
       />
-      {/* Center spine */}
-      <path d="M50 28V72" stroke={color} strokeWidth="5" strokeLinecap="round" />
-      {/* Book pages accent lines */}
-      <path d="M28 38C35 34 43 36 43 36" stroke={color} strokeWidth="4" strokeLinecap="round" />
-      <path d="M72 38C65 34 57 36 57 36" stroke={color} strokeWidth="4" strokeLinecap="round" />
-      {/* Moustache emblem below book spine */}
+
+      {/* Closed Book - Top spine arc cap */}
       <path
-        d="M50 77C44 72 34 72 28 78C26 80 28 83 31 82C37 80 43 82 48 85C49 85.5 51 85.5 52 85C57 82 63 80 69 82C72 83 74 80 72 78C66 72 56 72 50 77Z"
+        d="M 37.5 21 C 36 21.5, 34.5 23, 34.5 25.5 C 34.5 28, 36 29.5, 37.5 30 L 57.5 25.5 L 57.5 21 Z"
+        fill={color}
+      />
+
+      {/* Spine / Spine Curve (Left side) */}
+      <path
+        d="M 34.5 25.5 L 34.5 68.5 C 34.5 71, 36 72.5, 37.5 73 L 37.5 30 C 36 29.5, 34.5 28, 34.5 25.5 Z"
+        fill={color}
+        opacity="0.85"
+      />
+
+      {/* Main Front Cover (Perspective Closed Book) */}
+      <path
+        d="M 37.5 30 L 61.5 24.5 C 62.8 24.2, 64 25.2, 64 26.5 L 64 69.5 C 64 70.8, 62.8 71.8, 61.5 72.1 L 37.5 77.5 Z"
+        fill={color}
+      />
+
+      {/* Inner Page Edges (Side view block of closed pages behind front cover) */}
+      <path
+        d="M 37.5 25.5 L 57.5 21 C 58.8 20.7, 60 21.7, 60 23 L 60 66 C 60 67.3, 58.8 68.3, 57.5 68.6 L 37.5 73 Z"
+        fill="#FAF6F0"
+        opacity="0.95"
+      />
+
+      {/* Front Cover Plate (Re-rendered over page block) */}
+      <path
+        d="M 37.5 30 L 61.5 24.5 C 62.8 24.2, 64 25.2, 64 26.5 L 64 69.5 C 64 70.8, 62.8 71.8, 61.5 72.1 L 37.5 77.5 Z"
+        fill={color}
+      />
+
+      {/* Mustachioed Emblem Extending Past Both Edges at Bottom */}
+      <path
+        d="M 50 63
+           C 46 58, 38 56, 28 62
+           C 20 67, 18 73, 21 76
+           C 23.5 78.5, 27 77, 29 74.5
+           C 33 69.5, 41 68.5, 48 74
+           C 49.2 75, 50.8 75, 52 74
+           C 59 68.5, 67 69.5, 71 74.5
+           C 73 77, 76.5 78.5, 79 76
+           C 82 73, 80 67, 72 62
+           C 62 56, 54 58, 50 63 Z"
         fill={color}
       />
     </svg>
