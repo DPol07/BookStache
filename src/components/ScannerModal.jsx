@@ -155,18 +155,18 @@ export default function ScannerModal({ isOpen, onClose, onScanSuccess, onOpenMan
   return (
     <div style={{ backgroundColor: '#FAF6F0', color: '#3D2314' }} className="fixed inset-0 z-50 flex flex-col animate-fadeIn">
       {/* Top Header */}
-      <div style={{ backgroundColor: '#EAE1D3', borderColor: '#E6D7C3' }} className="flex items-center justify-between p-4 border-b z-20">
+      <div style={{ backgroundColor: '#F2E8D8', borderColor: '#8C593B' }} className="flex items-center justify-between p-4 border-b z-20">
         <div className="flex items-center gap-2">
-          <Camera className="w-5 h-5 text-amber-600 animate-pulse" />
+          <Camera className="w-5 h-5 animate-pulse" style={{ color: '#5C3A24' }} />
           <span style={{ color: '#3D2314' }} className="font-bold text-base font-serif">Skenování čárového kódu</span>
         </div>
         <button
           onClick={() => handleSafeClose()}
-          style={{ backgroundColor: '#D97706', color: '#FFFDF9' }}
+          style={{ backgroundColor: '#4A2E1B', color: '#FAF6F0' }}
           className="p-2 rounded-full transition-colors cursor-pointer"
           aria-label="Zavřít"
         >
-          <X className="w-6 h-6" />
+          <X className="w-5 h-5" />
         </button>
       </div>
 
@@ -178,17 +178,17 @@ export default function ScannerModal({ isOpen, onClose, onScanSuccess, onOpenMan
         {/* Custom Visual Frame Overlay */}
         {!scannerError && (
           <div className="absolute inset-0 pointer-events-none flex flex-col items-center justify-center p-6">
-            <div className="relative w-[280px] h-[160px] border-2 border-amber-500/40 rounded-2xl flex items-center justify-center overflow-hidden">
+            <div className="relative w-[280px] h-[160px] border-2 border-[#8C593B]/60 rounded-2xl flex items-center justify-center overflow-hidden">
               {/* Perfectly Aligned Corner Brackets */}
-              <div className="absolute -top-0.5 -left-0.5 w-6 h-6 border-t-4 border-l-4 border-amber-400 rounded-tl-xl" />
-              <div className="absolute -top-0.5 -right-0.5 w-6 h-6 border-t-4 border-r-4 border-amber-400 rounded-tr-xl" />
-              <div className="absolute -bottom-0.5 -left-0.5 w-6 h-6 border-b-4 border-l-4 border-amber-400 rounded-bl-xl" />
-              <div className="absolute -bottom-0.5 -right-0.5 w-6 h-6 border-b-4 border-r-4 border-amber-400 rounded-br-xl" />
+              <div className="absolute -top-0.5 -left-0.5 w-6 h-6 border-t-4 border-l-4 border-[#F2E8D8] rounded-tl-xl" />
+              <div className="absolute -top-0.5 -right-0.5 w-6 h-6 border-t-4 border-r-4 border-[#F2E8D8] rounded-tr-xl" />
+              <div className="absolute -bottom-0.5 -left-0.5 w-6 h-6 border-b-4 border-l-4 border-[#F2E8D8] rounded-bl-xl" />
+              <div className="absolute -bottom-0.5 -right-0.5 w-6 h-6 border-b-4 border-r-4 border-[#F2E8D8] rounded-br-xl" />
 
-              <div className="w-full h-0.5 bg-amber-400 shadow-sm animate-scanline" />
+              <div className="w-full h-0.5 bg-[#F2E8D8] shadow-sm animate-scanline" />
             </div>
 
-            <p style={{ backgroundColor: '#F2E8D8', color: '#3D2314', borderColor: '#D97706' }} className="mt-6 text-xs font-semibold px-4 py-2 rounded-full border text-center">
+            <p style={{ backgroundColor: '#F2E8D8', color: '#3D2314', borderColor: '#8C593B' }} className="mt-6 text-xs font-semibold px-4 py-2 rounded-full border text-center">
               Naměřte čárový kód na knize do rámečku
             </p>
           </div>
@@ -219,7 +219,7 @@ export default function ScannerModal({ isOpen, onClose, onScanSuccess, onOpenMan
       </div>
 
       {/* Bottom Controls */}
-      <div style={{ backgroundColor: '#EAE1D3', borderColor: '#E6D7C3' }} className="p-4 border-t flex flex-col gap-3 z-20">
+      <div style={{ backgroundColor: '#F2E8D8', borderColor: '#8C593B' }} className="p-4 border-t flex flex-col gap-3 z-20">
         <input
           type="file"
           ref={fileInputRef}
@@ -231,16 +231,16 @@ export default function ScannerModal({ isOpen, onClose, onScanSuccess, onOpenMan
         <div className="grid grid-cols-2 gap-3">
           <button
             onClick={() => fileInputRef.current?.click()}
-            style={{ backgroundColor: '#FAF6F0', borderColor: '#D97706', color: '#3D2314' }}
+            style={{ backgroundColor: '#FAF6F0', borderColor: '#8C593B', color: '#3D2314' }}
             className="py-3 px-4 font-semibold text-xs rounded-xl border flex items-center justify-center gap-2 cursor-pointer"
           >
-            <Image className="w-4 h-4 text-amber-600" />
+            <Image className="w-4 h-4" style={{ color: '#5C3A24' }} />
             <span>Nahrát fotku</span>
           </button>
 
           <button
             onClick={() => handleSafeClose(onOpenManualInput)}
-            style={{ backgroundColor: '#D97706', borderColor: '#C26200', color: '#FFFDF9' }}
+            style={{ backgroundColor: '#4A2E1B', borderColor: '#3D2314', color: '#FAF6F0' }}
             className="py-3 px-4 font-bold text-xs rounded-xl border flex items-center justify-center gap-2 cursor-pointer"
           >
             <Keyboard className="w-4 h-4" />
@@ -250,7 +250,7 @@ export default function ScannerModal({ isOpen, onClose, onScanSuccess, onOpenMan
 
         <button
           onClick={() => handleSafeClose()}
-          style={{ backgroundColor: '#FAF6F0', borderColor: '#E6D7C3', color: '#5C3A24' }}
+          style={{ backgroundColor: '#FAF6F0', borderColor: '#8C593B', color: '#5C3A24' }}
           className="w-full py-3 border font-medium text-xs rounded-xl cursor-pointer"
         >
           Zrušit skenování

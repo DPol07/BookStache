@@ -10,13 +10,6 @@ export default defineConfig({
   ],
   build: {
     outDir: 'dist',
-    rollupOptions: {
-      output: {
-        entryFileNames: 'assets/app.js',
-        chunkFileNames: 'assets/[name].js',
-        assetFileNames: 'assets/app.[ext]'
-      }
-    }
   },
   server: {
     port: 3000,
