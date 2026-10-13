@@ -36,7 +36,7 @@ export default function BookDetailModal({ isOpen, book, onClose, onDeleteBook })
         {/* Top-Right 'X' Close Button */}
         <button
           onClick={onClose}
-          style={{ backgroundColor: '#D97706', color: '#FFFDF9' }}
+          style={{ backgroundColor: '#4A2E1B', color: '#FAF6F0' }}
           className="absolute top-3.5 right-3.5 z-20 p-2 rounded-full cursor-pointer"
           aria-label="Zavřít"
         >

@@ -32,10 +32,10 @@ export default function LibraryModal({
       {/* Top Header */}
       <div
         className="p-4 border-b flex items-center justify-between z-20 shrink-0"
-        style={{ backgroundColor: '#EAE1D3', borderColor: '#E6D7C3' }}
+        style={{ backgroundColor: '#F2E8D8', borderColor: '#8C593B' }}
       >
         <div className="flex items-center gap-3">
-          <div className="p-2.5 rounded-2xl border" style={{ backgroundColor: '#D97706', color: '#FFFDF9', borderColor: '#C26200' }}>
+          <div className="p-2.5 rounded-2xl border" style={{ backgroundColor: '#4A2E1B', color: '#FAF6F0', borderColor: '#3D2314' }}>
             <Library className="w-6 h-6" />
           </div>
           <div>
@@ -48,18 +48,18 @@ export default function LibraryModal({
 
         <button
           onClick={onClose}
-          style={{ backgroundColor: '#D97706', color: '#FFFDF9' }}
+          style={{ backgroundColor: '#4A2E1B', color: '#FAF6F0' }}
           className="p-2 rounded-full cursor-pointer"
           aria-label="Zavřít"
         >
-          <X className="w-6 h-6" />
+          <X className="w-5 h-5" />
         </button>
       </div>
 
       {/* Search Bar */}
       <div
         className="p-4 border-b shrink-0"
-        style={{ backgroundColor: '#FAF6F0', borderColor: '#E6D7C3' }}
+        style={{ backgroundColor: '#FAF6F0', borderColor: '#8C593B' }}
       >
         <div className="relative max-w-lg mx-auto">
           <input
@@ -67,14 +67,14 @@ export default function LibraryModal({
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Vyhledat podle názvu nebo autora..."
-            style={{ backgroundColor: '#FFFDF9', borderColor: '#D97706', color: '#3D2314' }}
+            style={{ backgroundColor: '#FFFDF9', borderColor: '#8C593B', color: '#3D2314' }}
             className="w-full px-4 py-3 pl-11 border rounded-2xl text-sm focus:outline-none"
           />
-          <Search className="w-5 h-5 absolute left-3.5 top-1/2 -translate-y-1/2" style={{ color: '#D97706' }} />
+          <Search className="w-5 h-5 absolute left-3.5 top-1/2 -translate-y-1/2" style={{ color: '#5C3A24' }} />
           {searchQuery && (
             <button
               onClick={() => setSearchQuery('')}
-              style={{ backgroundColor: '#D97706', color: '#FFFDF9' }}
+              style={{ backgroundColor: '#4A2E1B', color: '#FAF6F0' }}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-xs p-1 rounded-full cursor-pointer"
             >
               <X className="w-3.5 h-3.5" />

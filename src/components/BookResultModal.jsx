@@ -47,15 +47,15 @@ export default function BookResultModal({
           {/* Top-Right 'X' Close Button */}
           <button
             onClick={onClose}
-            style={{ backgroundColor: '#D97706', color: '#FFFDF9' }}
+            style={{ backgroundColor: '#4A2E1B', color: '#FAF6F0' }}
             className="absolute top-4 right-4 p-2 rounded-full cursor-pointer"
             aria-label="Zavřít"
           >
             <X className="w-5 h-5" />
           </button>
 
-          <div style={{ backgroundColor: '#EAE1D3', borderColor: '#D97706' }} className="w-14 h-14 mx-auto mb-4 text-amber-600 rounded-2xl border flex items-center justify-center">
-            <AlertTriangle className="w-7 h-7" />
+          <div style={{ backgroundColor: '#F2E8D8', borderColor: '#8C593B' }} className="w-14 h-14 mx-auto mb-4 rounded-2xl border flex items-center justify-center">
+            <AlertTriangle className="w-7 h-7" style={{ color: '#5C3A24' }} />
           </div>
 
           <h3 className="text-xl font-bold font-serif mb-2">Kniha nebyla nalezena</h3>
@@ -66,7 +66,7 @@ export default function BookResultModal({
           <div className="space-y-3">
             <button
               onClick={onRetryScan}
-              style={{ backgroundColor: '#D97706', color: '#FFFDF9' }}
+              style={{ backgroundColor: '#4A2E1B', color: '#FAF6F0' }}
               className="w-full py-3.5 px-4 font-extrabold rounded-2xl flex items-center justify-center gap-2 text-xs font-serif uppercase tracking-wider cursor-pointer"
             >
               <RotateCcw className="w-4 h-4" />
@@ -78,7 +78,7 @@ export default function BookResultModal({
                 onClose();
                 onOpenManualInput();
               }}
-              style={{ backgroundColor: '#EAE1D3', borderColor: '#D97706', color: '#3D2314' }}
+              style={{ backgroundColor: '#F2E8D8', borderColor: '#8C593B', color: '#3D2314' }}
               className="w-full py-3 px-4 font-semibold rounded-2xl border text-xs cursor-pointer"
             >
               Zadat ISBN ručně
@@ -112,7 +112,7 @@ export default function BookResultModal({
         {/* Top-Right 'X' Close Button */}
         <button
           onClick={onClose}
-          style={{ backgroundColor: '#D97706', color: '#FFFDF9' }}
+          style={{ backgroundColor: '#4A2E1B', color: '#FAF6F0' }}
           className="absolute top-3.5 right-3.5 z-20 p-2 rounded-full cursor-pointer"
           aria-label="Zavřít"
         >
@@ -231,10 +231,10 @@ export default function BookResultModal({
         </div>
 
         {/* Bottom Action Bar */}
-        <div style={{ backgroundColor: '#EAE1D3', borderColor: '#E6D7C3' }} className="p-4 border-t flex items-center gap-3 shrink-0">
+        <div style={{ backgroundColor: '#F2E8D8', borderColor: '#8C593B' }} className="p-4 border-t flex items-center gap-3 shrink-0">
           <button
             onClick={onClose}
-            style={{ backgroundColor: '#FAF6F0', borderColor: '#E6D7C3', color: '#3D2314' }}
+            style={{ backgroundColor: '#FAF6F0', borderColor: '#8C593B', color: '#3D2314' }}
             className="flex-1 py-3.5 px-4 font-bold text-xs rounded-2xl border text-center cursor-pointer"
           >
             Zrušit
@@ -244,8 +244,8 @@ export default function BookResultModal({
             onClick={handleSave}
             disabled={isSaved}
             style={{
-              backgroundColor: isSaved ? '#15803D' : '#D97706',
-              color: '#FFFDF9'
+              backgroundColor: isSaved ? '#15803D' : '#4A2E1B',
+              color: '#FAF6F0'
             }}
             className="flex-1 py-3.5 px-4 font-extrabold text-xs rounded-2xl flex items-center justify-center gap-2 uppercase tracking-wider font-serif cursor-pointer"
           >

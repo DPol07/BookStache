@@ -24,7 +24,7 @@ export default function ManualIsbnModal({ isOpen, onClose, onSubmitIsbn }) {
         {/* Top-Right 'X' Close Button */}
         <button
           onClick={onClose}
-          style={{ backgroundColor: '#D97706', color: '#FFFDF9' }}
+          style={{ backgroundColor: '#4A2E1B', color: '#FAF6F0' }}
           className="absolute top-4 right-4 p-2 rounded-full cursor-pointer"
           aria-label="Zavřít"
         >
@@ -33,8 +33,8 @@ export default function ManualIsbnModal({ isOpen, onClose, onSubmitIsbn }) {
 
         {/* Modal Header */}
         <div className="flex items-center gap-3 mb-4">
-          <div style={{ backgroundColor: '#EAE1D3', borderColor: '#D97706', color: '#D97706' }} className="p-3 rounded-2xl border">
-            <Keyboard className="w-6 h-6" />
+          <div style={{ backgroundColor: '#F2E8D8', borderColor: '#8C593B' }} className="p-3 rounded-2xl border">
+            <Keyboard className="w-6 h-6" style={{ color: '#5C3A24' }} />
           </div>
           <div>
             <h3 className="text-xl font-extrabold font-serif">Zadat ISBN ručně</h3>
@@ -51,17 +51,17 @@ export default function ManualIsbnModal({ isOpen, onClose, onSubmitIsbn }) {
               onChange={(e) => setIsbn(e.target.value)}
               placeholder="Např. 9788000058825 nebo 978-80-00058-82-5"
               autoFocus
-              style={{ backgroundColor: '#FAF6F0', borderColor: '#D97706', color: '#3D2314' }}
+              style={{ backgroundColor: '#FAF6F0', borderColor: '#8C593B', color: '#3D2314' }}
               className="w-full px-4 py-3.5 border rounded-2xl text-sm font-mono focus:outline-none"
             />
-            <Search className="w-5 h-5 absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: '#D97706' }} />
+            <Search className="w-5 h-5 absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: '#5C3A24' }} />
           </div>
 
           <div className="flex items-center gap-2">
             <button
               type="button"
               onClick={onClose}
-              style={{ backgroundColor: '#EAE1D3', borderColor: '#E6D7C3', color: '#3D2314' }}
+              style={{ backgroundColor: '#FAF6F0', borderColor: '#8C593B', color: '#3D2314' }}
               className="flex-1 py-3.5 font-semibold text-xs rounded-2xl border transition-colors cursor-pointer"
             >
               Zrušit
@@ -69,7 +69,7 @@ export default function ManualIsbnModal({ isOpen, onClose, onSubmitIsbn }) {
             <button
               type="submit"
               disabled={!isbn.trim()}
-              style={{ backgroundColor: '#D97706', color: '#FFFDF9' }}
+              style={{ backgroundColor: '#4A2E1B', color: '#FAF6F0' }}
               className="flex-1 py-3.5 font-bold text-xs rounded-2xl transition-all font-serif uppercase tracking-wider cursor-pointer"
             >
               Vyhledat knihu
