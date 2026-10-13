@@ -33,8 +33,11 @@ export default function Header({ libraryCount, onOpenLibrary }) {
       </button>
 
       {/* App Branding Title & Logo */}
-      <div className="flex items-center gap-2">
-        <img src={logoOriginal} alt="BookStache Logo" className="h-12 sm:h-14 w-auto object-contain" />
+      <div
+        style={{ backgroundColor: '#F2E8D8', borderColor: '#D97706' }}
+        className="flex items-center gap-2 px-3 py-1.5 border rounded-2xl shadow-xs"
+      >
+        <img src={logoOriginal} alt="BookStache Logo" className="h-9 sm:h-10 w-auto object-contain" />
       </div>
     </header>
   );
