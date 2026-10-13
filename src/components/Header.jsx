@@ -34,7 +34,7 @@ export default function Header({ libraryCount, onOpenLibrary }) {
 
       {/* App Branding Title & Logo */}
       <div className="flex items-center gap-2">
-        <img src={logoOriginal} alt="BookStache Logo" className="h-10 w-auto object-contain" />
+        <img src={logoOriginal} alt="BookStache Logo" className="h-12 sm:h-14 w-auto object-contain" />
       </div>
     </header>
   );

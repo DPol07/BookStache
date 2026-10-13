@@ -185,16 +185,17 @@ export default function ScannerModal({ isOpen, onClose, onScanSuccess, onOpenMan
         {/* Custom Visual Frame Overlay */}
         {!scannerError && (
           <div className="absolute inset-0 pointer-events-none flex flex-col items-center justify-center p-6">
-            <div className="relative w-72 h-44 border-4 border-amber-500 rounded-3xl flex items-center justify-center overflow-hidden">
-              <div className="absolute top-2 left-2 w-4 h-4 border-t-4 border-l-4 border-amber-400 rounded-tl-md" />
-              <div className="absolute top-2 right-2 w-4 h-4 border-t-4 border-r-4 border-amber-400 rounded-tr-md" />
-              <div className="absolute bottom-2 left-2 w-4 h-4 border-b-4 border-l-4 border-amber-400 rounded-bl-md" />
-              <div className="absolute bottom-2 right-2 w-4 h-4 border-b-4 border-r-4 border-amber-400 rounded-br-md" />
+            <div className="relative w-[280px] h-[160px] border-2 border-amber-500/40 rounded-2xl flex items-center justify-center overflow-hidden">
+              {/* Perfectly Aligned Corner Brackets */}
+              <div className="absolute -top-0.5 -left-0.5 w-6 h-6 border-t-4 border-l-4 border-amber-400 rounded-tl-xl" />
+              <div className="absolute -top-0.5 -right-0.5 w-6 h-6 border-t-4 border-r-4 border-amber-400 rounded-tr-xl" />
+              <div className="absolute -bottom-0.5 -left-0.5 w-6 h-6 border-b-4 border-l-4 border-amber-400 rounded-bl-xl" />
+              <div className="absolute -bottom-0.5 -right-0.5 w-6 h-6 border-b-4 border-r-4 border-amber-400 rounded-br-xl" />
 
-              <div className="w-full h-1 bg-amber-500 animate-scanline" />
+              <div className="w-full h-0.5 bg-amber-400 shadow-sm animate-scanline" />
             </div>
 
-            <p style={{ backgroundColor: '#EAE1D3', color: '#3D2314', borderColor: '#D97706' }} className="mt-6 text-xs font-semibold px-4 py-2 rounded-full border text-center">
+            <p style={{ backgroundColor: '#F2E8D8', color: '#3D2314', borderColor: '#D97706' }} className="mt-6 text-xs font-semibold px-4 py-2 rounded-full border text-center">
               Naměřte čárový kód na knize do rámečku
             </p>
           </div>
