@@ -39,19 +39,20 @@ export default function MainScreen({ onStartScan, onOpenManualInput, libraryCoun
         <button
           onClick={onStartScan}
           style={{
-            backgroundColor: '#A35212',
-            borderColor: '#3D2314',
-            color: '#FFFDF9'
+            backgroundColor: '#C58B62',
+            borderColor: '#E8D6C2',
+            color: '#3D2314',
+            boxShadow: '0 16px 32px rgba(61, 35, 20, 0.18), inset 0 2px 3px rgba(255, 253, 249, 0.28)'
           }}
-          className="relative group w-52 h-52 sm:w-56 sm:h-56 rounded-full font-black transition-transform active:scale-95 flex flex-col items-center justify-center gap-2 border-4 shadow-md cursor-pointer"
+          className="relative group w-52 h-52 sm:w-56 sm:h-56 rounded-full font-black transition-transform active:scale-95 flex flex-col items-center justify-center gap-2 border-[3px] cursor-pointer"
         >
           {/* Logo symbol on central button */}
-          <BookStacheLogo className="w-16 h-16 group-hover:scale-105 transition-transform" />
+          <BookStacheLogo className="w-20 h-20 group-hover:scale-105 transition-transform" />
 
-          <span style={{ color: '#FFFDF9' }} className="text-2xl sm:text-2xl tracking-wider font-black uppercase font-serif">
+          <span style={{ color: '#3D2314' }} className="text-2xl sm:text-2xl tracking-wider font-black uppercase font-serif">
             NASKENOVAT
           </span>
-          <span style={{ color: '#F2E8D8' }} className="text-[10px] font-extrabold uppercase tracking-widest -mt-0.5">
+          <span style={{ color: '#5C3A24' }} className="text-[10px] font-extrabold uppercase tracking-widest -mt-0.5">
             Fotoaparát
           </span>
         </button>
