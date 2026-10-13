@@ -1,81 +1,62 @@
 import React from 'react';
-import { Keyboard, Sparkles } from 'lucide-react';
+import { ArrowRight, Keyboard, Sparkles } from 'lucide-react';
 import { BookStacheLogo } from './Header';
 
-export default function MainScreen({ onStartScan, onOpenManualInput, libraryCount }) {
+export default function MainScreen({ onStartScan, onOpenManualInput }) {
   return (
-    <div className="flex-1 flex flex-col items-center justify-between px-4 py-4 max-w-lg mx-auto w-full relative overflow-hidden">
-      {/* Subtle Book-Spine Graphic Background Accent */}
-      <div className="absolute inset-0 pointer-events-none opacity-[0.05] flex items-center justify-center -z-0">
-        <svg width="340" height="340" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M30 40H85C95 40 100 45 100 55V170C100 160 92 155 82 155H30V40Z" stroke="#3D2314" strokeWidth="3" />
-          <path d="M170 40H115C105 40 100 45 100 55V170C100 160 108 155 118 155H170V40Z" stroke="#3D2314" strokeWidth="3" />
-          <line x1="45" y1="65" x2="75" y2="65" stroke="#3D2314" strokeWidth="2" strokeLinecap="round" />
-          <line x1="45" y1="85" x2="75" y2="85" stroke="#3D2314" strokeWidth="2" strokeLinecap="round" />
-          <line x1="125" y1="65" x2="155" y2="65" stroke="#3D2314" strokeWidth="2" strokeLinecap="round" />
-          <line x1="125" y1="85" x2="155" y2="85" stroke="#3D2314" strokeWidth="2" strokeLinecap="round" />
-        </svg>
-      </div>
-
-      {/* Top Greeting / Info */}
-      <div className="text-center mt-1 space-y-1 w-full z-10">
+    <main className="flex-1 flex flex-col items-center px-5 pt-5 pb-6 max-w-lg mx-auto w-full">
+      <div className="text-center space-y-4 pt-2">
         <div
-          style={{ backgroundColor: '#F2E8D8', borderColor: '#D97706', color: '#5C3A24' }}
-          className="inline-flex items-center gap-1.5 px-3 py-1 border rounded-full text-xs font-bold"
+          style={{ backgroundColor: '#F3ECE3', borderColor: '#E1D6C8', color: '#665445' }}
+          className="inline-flex items-center gap-2 px-3.5 py-1.5 border rounded-full text-xs font-semibold"
         >
-          <Sparkles className="w-3.5 h-3.5" style={{ color: '#D97706' }} />
+          <Sparkles className="w-3.5 h-3.5" style={{ color: '#806858' }} />
           <span>Skenování čárových kódů & ISBN</span>
         </div>
-        <h1 style={{ color: '#3D2314' }} className="text-2xl sm:text-3xl font-black font-serif pt-1.5 tracking-tight">
+        <h1 style={{ color: '#40352D' }} className="text-[2rem] leading-tight sm:text-4xl font-bold font-serif tracking-tight">
           Přidejte knihy do své sbírky
         </h1>
-        <p style={{ color: '#5C3A24' }} className="text-xs max-w-xs mx-auto font-medium">
+        <p style={{ color: '#75685D' }} className="text-sm leading-relaxed max-w-xs mx-auto">
           Zamiřte fotoaparát na čárový kód knihy a okamžitě získejte všechny informace.
         </p>
       </div>
 
-      {/* Central Big Scan Button - Balanced Proportions */}
-      <div className="my-auto py-4 flex flex-col items-center justify-center relative z-10">
+      <div className="flex-1 flex w-full items-center justify-center py-8">
         <button
           onClick={onStartScan}
           style={{
-            backgroundColor: '#C58B62',
-            borderColor: '#E8D6C2',
-            color: '#3D2314',
-            boxShadow: '0 16px 32px rgba(61, 35, 20, 0.18), inset 0 2px 3px rgba(255, 253, 249, 0.28)'
+            backgroundColor: '#806858',
+            borderColor: '#735C4B',
+            color: '#FFF9F1',
+            boxShadow: '0 12px 28px rgba(76, 56, 42, 0.16), inset 0 1px 0 rgba(255, 249, 241, 0.18)'
           }}
-          className="relative group w-52 h-52 sm:w-56 sm:h-56 rounded-full font-black transition-transform active:scale-95 flex flex-col items-center justify-center gap-2 border-[3px] cursor-pointer"
+          className="group w-full max-w-[320px] min-h-[112px] rounded-[28px] border px-5 py-4 flex items-center gap-4 text-left transition-all active:scale-[0.98] hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#D8C9B8] cursor-pointer"
         >
-          {/* Logo symbol on central button */}
-          <BookStacheLogo className="w-20 h-20 group-hover:scale-105 transition-transform" />
-
-          <span style={{ color: '#3D2314' }} className="text-2xl sm:text-2xl tracking-wider font-black uppercase font-serif">
-            NASKENOVAT
+          <span className="grid h-16 w-16 shrink-0 place-items-center rounded-[20px]" style={{ backgroundColor: '#F3ECE3' }}>
+            <BookStacheLogo className="h-11 w-11" ink="#695647" accent="#9A846F" />
           </span>
-          <span style={{ color: '#5C3A24' }} className="text-[10px] font-extrabold uppercase tracking-widest -mt-0.5">
-            Fotoaparát
+          <span className="flex-1 flex flex-col gap-1">
+            <span className="font-serif text-xl font-bold tracking-wide">Naskenovat</span>
+            <span className="text-xs font-medium tracking-wide" style={{ color: '#F0E7DD' }}>Čárový kód knihy</span>
           </span>
+          <ArrowRight className="h-5 w-5 shrink-0 opacity-80 transition-transform group-hover:translate-x-1" />
         </button>
       </div>
 
-      {/* Secondary Actions & Info */}
-      <div className="w-full space-y-3 mb-2">
+      <div className="w-full space-y-3">
         <button
           onClick={onOpenManualInput}
-          style={{ backgroundColor: '#F2E8D8', borderColor: '#D97706', color: '#3D2314' }}
-          className="w-full py-4 px-5 border rounded-2xl font-bold text-sm transition-all active:scale-[0.98] flex items-center justify-center gap-2.5 cursor-pointer"
+          style={{ backgroundColor: '#F3ECE3', borderColor: '#E1D6C8', color: '#514337' }}
+          className="w-full py-4 px-5 border rounded-2xl font-semibold text-sm transition-all active:scale-[0.98] flex items-center justify-center gap-2.5 cursor-pointer"
         >
-          <Keyboard className="w-5 h-5" style={{ color: '#D97706' }} />
+          <Keyboard className="w-5 h-5" style={{ color: '#806858' }} />
           <span>Zadat ISBN ručně</span>
         </button>
 
-        {/* Footer Hint */}
-        <div className="text-center pt-2">
-          <p style={{ color: '#8C593B' }} className="text-[11px] font-medium">
-            Všechna data jsou bezpečně uložena lokálně ve vašem zařízení.
-          </p>
-        </div>
+        <p className="text-center pt-1 text-[11px] font-medium" style={{ color: '#88796C' }}>
+          Všechna data jsou bezpečně uložena lokálně ve vašem zařízení.
+        </p>
       </div>
-    </div>
+    </main>
   );
 }
