@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build && cp -r dist/* ./ 2>/dev/null || true",
+    "build": "vite build && cp -R dist/. ./",
     "preview": "vite preview"
   },
   "dependencies": {
@@ -15,7 +15,7 @@
     "react-dom": "^19.3.0"
   },
   "devDependencies": {
-    "@tailwindcss/vite": "^4.0.9",
+    "@tailwindcss/vite": "^4.3.3",
     "@vitejs/plugin-react": "^6.1.1",
     "autoprefixer": "^10.6.1",
     "postcss": "^8.5.28",
