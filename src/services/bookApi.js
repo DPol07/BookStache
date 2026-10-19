@@ -186,7 +186,7 @@ const OFFLINE_CATALOG = {
 // Fetch book details from Knihovny.cz API (Czech National Union Catalog API)
 async function fetchKnihovnyCz(cleanIsbn) {
   try {
-    const url = `https://api.knihovny.cz/api/v1/search?lookfor=${cleanIsbn}&type=Isbn`;
+    const url = `https://www.knihovny.cz/api/v1/search?lookfor=${cleanIsbn}&type=ISN`;
     const response = await fetchWithTimeout(url);
     if (!response.ok) return null;
     const data = await response.json();
