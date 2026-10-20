@@ -21,9 +21,13 @@ export function BookStacheLogo({ className = "w-8 h-8", color = "#3D2314" }) {
       <path d="M28 38C35 34 43 36 43 36" stroke={color} strokeWidth="4" strokeLinecap="round" />
       <path d="M72 38C65 34 57 36 57 36" stroke={color} strokeWidth="4" strokeLinecap="round" />
       {/* Moustache emblem below book spine */}
-      <path
-        d="M50 77C44 72 34 72 28 78C26 80 28 83 31 82C37 80 43 82 48 85C49 85.5 51 85.5 52 85C57 82 63 80 69 82C72 83 74 80 72 78C66 72 56 72 50 77Z"
-        fill={color}
+      <image
+        href="./mustacheforbookstache.png"
+        x="9.58"
+        y="41.1"
+        width="78"
+        height="78"
+        preserveAspectRatio="xMidYMid meet"
       />
     </svg>
   );
