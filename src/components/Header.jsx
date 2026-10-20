@@ -5,26 +5,28 @@ import { Library } from 'lucide-react';
 export function BookStacheLogo({ className = "w-8 h-8", color = "#3D2314" }) {
   const maskId = React.useId();
   return (
-    <svg className={className} viewBox="-12 -2 104 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg className={className} viewBox="-35 -30 135 130" fill="none" xmlns="http://www.w3.org/2000/svg">
       <defs>
-        <mask id={maskId}>
+        <mask id={maskId} maskUnits="userSpaceOnUse" x="-50" y="-40" width="120" height="100">
           <image
             href="./mustacheforbookstache.png"
-            x="-10"
-            y="-2"
-            width="50"
-            height="36"
+            x="-30"
+            y="-25"
+            width="110"
+            height="80"
             preserveAspectRatio="xMidYMid meet"
+            transform="rotate(-28 25 15)"
+            style={{ filter: "brightness(0) invert(1)" }}
           />
         </mask>
       </defs>
 
-      {/* Moustache emblem placed above and to the left of book's upper-left corner */}
+      {/* Significantly larger moustache emblem angled diagonally in book's upper-left corner */}
       <rect
-        x="-12"
-        y="-5"
-        width="55"
-        height="45"
+        x="-50"
+        y="-40"
+        width="120"
+        height="100"
         fill={color}
         mask={`url(#${maskId})`}
       />
