@@ -23,10 +23,10 @@ export function BookStacheLogo({ className = "w-8 h-8", color = "#3D2314" }) {
       {/* Moustache emblem below book spine */}
       <image
         href="./mustacheforbookstache.png"
-        x="9.58"
-        y="41.1"
-        width="78"
-        height="78"
+        x="-5"
+        y="23.7"
+        width="110"
+        height="110"
         preserveAspectRatio="xMidYMid meet"
       />
     </svg>
