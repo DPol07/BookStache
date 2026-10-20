@@ -3,8 +3,32 @@ import { Library } from 'lucide-react';
 
 // Clean vector logo mark for BookStache (Book + Moustache motif)
 export function BookStacheLogo({ className = "w-8 h-8", color = "#3D2314" }) {
+  const maskId = React.useId();
   return (
-    <svg className={className} viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg className={className} viewBox="-12 -2 104 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <mask id={maskId}>
+          <image
+            href="./mustacheforbookstache.png"
+            x="-10"
+            y="-2"
+            width="50"
+            height="36"
+            preserveAspectRatio="xMidYMid meet"
+          />
+        </mask>
+      </defs>
+
+      {/* Moustache emblem placed above and to the left of book's upper-left corner */}
+      <rect
+        x="-12"
+        y="-5"
+        width="55"
+        height="45"
+        fill={color}
+        mask={`url(#${maskId})`}
+      />
+
       {/* Book base */}
       <path
         d="M20 28C20 28 35 22 50 28C65 22 80 28 80 28V72C80 72 65 66 50 72C35 66 20 72 20 72V28Z"
@@ -20,15 +44,6 @@ export function BookStacheLogo({ className = "w-8 h-8", color = "#3D2314" }) {
       {/* Book pages accent lines */}
       <path d="M28 38C35 34 43 36 43 36" stroke={color} strokeWidth="4" strokeLinecap="round" />
       <path d="M72 38C65 34 57 36 57 36" stroke={color} strokeWidth="4" strokeLinecap="round" />
-      {/* Moustache emblem below book spine */}
-      <image
-        href="./mustacheforbookstache.png"
-        x="9.58"
-        y="41.1"
-        width="78"
-        height="78"
-        preserveAspectRatio="xMidYMid meet"
-      />
     </svg>
   );
 }
