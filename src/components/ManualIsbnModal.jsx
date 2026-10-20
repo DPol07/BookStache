@@ -24,7 +24,7 @@ export default function ManualIsbnModal({ isOpen, onClose, onSubmitIsbn }) {
         {/* Top-Right 'X' Close Button */}
         <button
           onClick={onClose}
-          style={{ backgroundColor: '#D97706', color: '#FFFDF9' }}
+          style={{ backgroundColor: '#4A2E1B', color: '#FAF6F0' }}
           className="absolute top-4 right-4 p-2 rounded-full cursor-pointer"
           aria-label="Zavřít"
         >
@@ -33,11 +33,11 @@ export default function ManualIsbnModal({ isOpen, onClose, onSubmitIsbn }) {
 
         {/* Modal Header */}
         <div className="flex items-center gap-3 mb-4">
-          <div style={{ backgroundColor: '#EAE1D3', borderColor: '#D97706', color: '#D97706' }} className="p-3 rounded-2xl border">
+          <div style={{ backgroundColor: '#F2E8D8', borderColor: '#8C593B', color: '#5C3A24' }} className="p-3 rounded-2xl border">
             <Keyboard className="w-6 h-6" />
           </div>
           <div>
-            <h3 className="text-xl font-extrabold font-serif">Zadat ISBN ručně</h3>
+            <h3 className="text-xl font-extrabold font-serif" style={{ color: '#3D2314' }}>Zadat ISBN ručně</h3>
             <p style={{ color: '#5C3A24' }} className="text-xs">Napište 10 nebo 13-místný ISBN kód knihy</p>
           </div>
         </div>
@@ -51,17 +51,17 @@ export default function ManualIsbnModal({ isOpen, onClose, onSubmitIsbn }) {
               onChange={(e) => setIsbn(e.target.value)}
               placeholder="Např. 9788000058825 nebo 978-80-00058-82-5"
               autoFocus
-              style={{ backgroundColor: '#FAF6F0', borderColor: '#D97706', color: '#3D2314' }}
+              style={{ backgroundColor: '#FAF6F0', borderColor: '#8C593B', color: '#3D2314' }}
               className="w-full px-4 py-3.5 border rounded-2xl text-sm font-mono focus:outline-none"
             />
-            <Search className="w-5 h-5 absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: '#D97706' }} />
+            <Search className="w-5 h-5 absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: '#8C593B' }} />
           </div>
 
           <div className="flex items-center gap-2">
             <button
               type="button"
               onClick={onClose}
-              style={{ backgroundColor: '#EAE1D3', borderColor: '#E6D7C3', color: '#3D2314' }}
+              style={{ backgroundColor: '#F2E8D8', borderColor: '#8C593B', color: '#3D2314' }}
               className="flex-1 py-3.5 font-semibold text-xs rounded-2xl border transition-colors cursor-pointer"
             >
               Zrušit
@@ -69,7 +69,7 @@ export default function ManualIsbnModal({ isOpen, onClose, onSubmitIsbn }) {
             <button
               type="submit"
               disabled={!isbn.trim()}
-              style={{ backgroundColor: '#D97706', color: '#FFFDF9' }}
+              style={{ backgroundColor: '#4A2E1B', color: '#FAF6F0', opacity: isbn.trim() ? 1 : 0.6 }}
               className="flex-1 py-3.5 font-bold text-xs rounded-2xl transition-all font-serif uppercase tracking-wider cursor-pointer"
             >
               Vyhledat knihu
@@ -79,7 +79,7 @@ export default function ManualIsbnModal({ isOpen, onClose, onSubmitIsbn }) {
 
         {/* Quick Test Samples */}
         <div style={{ borderColor: '#E6D7C3' }} className="mt-6 pt-4 border-t space-y-2.5">
-          <div className="flex items-center gap-1.5 text-xs font-bold" style={{ color: '#C26200' }}>
+          <div className="flex items-center gap-1.5 text-xs font-bold" style={{ color: '#5C3A24' }}>
             <Sparkles className="w-3.5 h-3.5" />
             <span>Rychlé vyzkoušení s příklady:</span>
           </div>
@@ -89,7 +89,7 @@ export default function ManualIsbnModal({ isOpen, onClose, onSubmitIsbn }) {
               style={{ backgroundColor: '#FAF6F0', borderColor: '#E6D7C3', color: '#3D2314' }}
               className="p-2.5 border rounded-xl text-left transition-colors flex items-center gap-2 group cursor-pointer"
             >
-              <Book className="w-4 h-4 shrink-0 group-hover:scale-110 transition-transform" style={{ color: '#D97706' }} />
+              <Book className="w-4 h-4 shrink-0 group-hover:scale-110 transition-transform" style={{ color: '#5C3A24' }} />
               <div className="truncate">
                 <span className="font-bold block truncate">Harry Potter</span>
                 <span className="text-[10px] font-mono" style={{ color: '#8C593B' }}>9788000058825</span>
@@ -101,7 +101,7 @@ export default function ManualIsbnModal({ isOpen, onClose, onSubmitIsbn }) {
               style={{ backgroundColor: '#FAF6F0', borderColor: '#E6D7C3', color: '#3D2314' }}
               className="p-2.5 border rounded-xl text-left transition-colors flex items-center gap-2 group cursor-pointer"
             >
-              <Book className="w-4 h-4 shrink-0 group-hover:scale-110 transition-transform" style={{ color: '#D97706' }} />
+              <Book className="w-4 h-4 shrink-0 group-hover:scale-110 transition-transform" style={{ color: '#5C3A24' }} />
               <div className="truncate">
                 <span className="font-bold block truncate">Malý princ</span>
                 <span className="text-[10px] font-mono" style={{ color: '#8C593B' }}>9788000058832</span>
@@ -113,7 +113,7 @@ export default function ManualIsbnModal({ isOpen, onClose, onSubmitIsbn }) {
               style={{ backgroundColor: '#FAF6F0', borderColor: '#E6D7C3', color: '#3D2314' }}
               className="p-2.5 border rounded-xl text-left transition-colors flex items-center gap-2 group cursor-pointer"
             >
-              <Book className="w-4 h-4 shrink-0 group-hover:scale-110 transition-transform" style={{ color: '#D97706' }} />
+              <Book className="w-4 h-4 shrink-0 group-hover:scale-110 transition-transform" style={{ color: '#5C3A24' }} />
               <div className="truncate">
                 <span className="font-bold block truncate">1984 (Orwell)</span>
                 <span className="text-[10px] font-mono" style={{ color: '#8C593B' }}>9788020455826</span>
@@ -125,7 +125,7 @@ export default function ManualIsbnModal({ isOpen, onClose, onSubmitIsbn }) {
               style={{ backgroundColor: '#FAF6F0', borderColor: '#E6D7C3', color: '#3D2314' }}
               className="p-2.5 border rounded-xl text-left transition-colors flex items-center gap-2 group cursor-pointer"
             >
-              <Book className="w-4 h-4 shrink-0 group-hover:scale-110 transition-transform" style={{ color: '#D97706' }} />
+              <Book className="w-4 h-4 shrink-0 group-hover:scale-110 transition-transform" style={{ color: '#5C3A24' }} />
               <div className="truncate">
                 <span className="font-bold block truncate">Alchymista</span>
                 <span className="text-[10px] font-mono" style={{ color: '#8C593B' }}>9788073819316</span>
