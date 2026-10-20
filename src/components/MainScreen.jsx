@@ -52,7 +52,7 @@ export default function MainScreen({ onStartScan, onOpenManualInput, libraryCoun
           <div className="absolute bottom-3 right-3 w-4 h-4 border-b-2 border-r-2 border-[#8C593B]/40 rounded-br-md" />
 
           {/* Clean Vector Emblem */}
-          <BookStacheLogo className="w-14 h-14 group-hover:scale-105 transition-transform" color="#FAF6F0" />
+          <BookStacheLogo className="w-20 h-20 sm:w-24 sm:h-24 group-hover:scale-105 transition-transform" color="#FAF6F0" />
 
           <div className="text-center space-y-0.5">
             <span style={{ color: '#FAF6F0' }} className="text-2xl tracking-wider font-black uppercase font-serif block">
