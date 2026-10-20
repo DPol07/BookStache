@@ -178,14 +178,17 @@ export default function ScannerModal({ isOpen, onClose, onScanSuccess, onOpenMan
         {/* Custom Visual Frame Overlay */}
         {!scannerError && (
           <div className="absolute inset-0 pointer-events-none flex flex-col items-center justify-center p-6">
-            <div className="relative w-[280px] h-[160px] border-2 border-[#8C593B]/60 rounded-2xl flex items-center justify-center overflow-hidden">
-              {/* Perfectly Aligned Corner Brackets */}
-              <div className="absolute -top-0.5 -left-0.5 w-6 h-6 border-t-4 border-l-4 border-[#F2E8D8] rounded-tl-xl" />
-              <div className="absolute -top-0.5 -right-0.5 w-6 h-6 border-t-4 border-r-4 border-[#F2E8D8] rounded-tr-xl" />
-              <div className="absolute -bottom-0.5 -left-0.5 w-6 h-6 border-b-4 border-l-4 border-[#F2E8D8] rounded-bl-xl" />
-              <div className="absolute -bottom-0.5 -right-0.5 w-6 h-6 border-b-4 border-r-4 border-[#F2E8D8] rounded-br-xl" />
+            <div className="relative w-[280px] h-[160px] border-2 border-[#8C593B]/60 rounded-2xl flex items-center justify-center">
+              {/* Scanline Inner Container */}
+              <div className="absolute inset-0 rounded-2xl overflow-hidden flex items-center justify-center pointer-events-none">
+                <div className="w-full h-0.5 bg-[#F2E8D8] shadow-sm animate-scanline" />
+              </div>
 
-              <div className="w-full h-0.5 bg-[#F2E8D8] shadow-sm animate-scanline" />
+              {/* Perfectly Aligned Corner Brackets */}
+              <div className="absolute -top-0.5 -left-0.5 w-7 h-7 border-t-4 border-l-4 border-[#F2E8D8] rounded-tl-2xl pointer-events-none" />
+              <div className="absolute -top-0.5 -right-0.5 w-7 h-7 border-t-4 border-r-4 border-[#F2E8D8] rounded-tr-2xl pointer-events-none" />
+              <div className="absolute -bottom-0.5 -left-0.5 w-7 h-7 border-b-4 border-l-4 border-[#F2E8D8] rounded-bl-2xl pointer-events-none" />
+              <div className="absolute -bottom-0.5 -right-0.5 w-7 h-7 border-b-4 border-r-4 border-[#F2E8D8] rounded-br-2xl pointer-events-none" />
             </div>
 
             <p style={{ backgroundColor: '#F2E8D8', color: '#3D2314', borderColor: '#8C593B' }} className="mt-6 text-xs font-semibold px-4 py-2 rounded-full border text-center">
