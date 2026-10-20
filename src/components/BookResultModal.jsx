@@ -28,7 +28,7 @@ export default function BookResultModal({
       <div style={{ backgroundColor: '#FAF6F0' }} className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-fadeIn">
         <div style={{ backgroundColor: '#FFFDF9', borderColor: '#E6D7C3', color: '#3D2314' }} className="w-full max-w-sm p-8 border rounded-3xl text-center space-y-4">
           <div className="relative w-16 h-16 mx-auto flex items-center justify-center">
-            <RefreshCw className="w-8 h-8 text-amber-600 animate-spin" />
+            <RefreshCw className="w-8 h-8 animate-spin" style={{ color: '#5C3A24' }} />
           </div>
           <div>
             <h3 className="text-lg font-bold font-serif">Vyhledávám knihu...</h3>
@@ -47,14 +47,14 @@ export default function BookResultModal({
           {/* Top-Right 'X' Close Button */}
           <button
             onClick={onClose}
-            style={{ backgroundColor: '#D97706', color: '#FFFDF9' }}
+            style={{ backgroundColor: '#4A2E1B', color: '#FAF6F0' }}
             className="absolute top-4 right-4 p-2 rounded-full cursor-pointer"
             aria-label="Zavřít"
           >
             <X className="w-5 h-5" />
           </button>
 
-          <div style={{ backgroundColor: '#EAE1D3', borderColor: '#D97706' }} className="w-14 h-14 mx-auto mb-4 text-amber-600 rounded-2xl border flex items-center justify-center">
+          <div style={{ backgroundColor: '#F2E8D8', borderColor: '#8C593B', color: '#5C3A24' }} className="w-14 h-14 mx-auto mb-4 rounded-2xl border flex items-center justify-center">
             <AlertTriangle className="w-7 h-7" />
           </div>
 
@@ -66,7 +66,7 @@ export default function BookResultModal({
           <div className="space-y-3">
             <button
               onClick={onRetryScan}
-              style={{ backgroundColor: '#D97706', color: '#FFFDF9' }}
+              style={{ backgroundColor: '#4A2E1B', color: '#FAF6F0' }}
               className="w-full py-3.5 px-4 font-extrabold rounded-2xl flex items-center justify-center gap-2 text-xs font-serif uppercase tracking-wider cursor-pointer"
             >
               <RotateCcw className="w-4 h-4" />
@@ -78,7 +78,7 @@ export default function BookResultModal({
                 onClose();
                 onOpenManualInput();
               }}
-              style={{ backgroundColor: '#EAE1D3', borderColor: '#D97706', color: '#3D2314' }}
+              style={{ backgroundColor: '#F2E8D8', borderColor: '#8C593B', color: '#3D2314' }}
               className="w-full py-3 px-4 font-semibold rounded-2xl border text-xs cursor-pointer"
             >
               Zadat ISBN ručně
@@ -112,7 +112,7 @@ export default function BookResultModal({
         {/* Top-Right 'X' Close Button */}
         <button
           onClick={onClose}
-          style={{ backgroundColor: '#D97706', color: '#FFFDF9' }}
+          style={{ backgroundColor: '#4A2E1B', color: '#FAF6F0' }}
           className="absolute top-3.5 right-3.5 z-20 p-2 rounded-full cursor-pointer"
           aria-label="Zavřít"
         >
@@ -124,7 +124,7 @@ export default function BookResultModal({
           {/* Cover & Hero Section */}
           <div className="flex flex-col sm:flex-row gap-4 items-center sm:items-start text-center sm:text-left pt-2">
             {/* Book Cover / Placeholder */}
-            <div style={{ backgroundColor: '#EAE1D3', borderColor: '#D97706' }} className="relative w-28 h-40 shrink-0 rounded-xl overflow-hidden border flex items-center justify-center">
+            <div style={{ backgroundColor: '#F2E8D8', borderColor: '#8C593B' }} className="relative w-28 h-40 shrink-0 rounded-xl overflow-hidden border flex items-center justify-center">
               {currentCoverUrl && !imageError ? (
                 <img
                   src={currentCoverUrl}
@@ -133,8 +133,8 @@ export default function BookResultModal({
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <div style={{ backgroundColor: '#EAE1D3', color: '#3D2314' }} className="flex flex-col items-center justify-between p-3 text-center w-full h-full">
-                  <div style={{ backgroundColor: '#D97706', color: '#FFFDF9' }} className="p-1.5 rounded-full mt-2">
+                <div style={{ backgroundColor: '#F2E8D8', color: '#3D2314' }} className="flex flex-col items-center justify-between p-3 text-center w-full h-full">
+                  <div style={{ backgroundColor: '#4A2E1B', color: '#FAF6F0' }} className="p-1.5 rounded-full mt-2">
                     <Book className="w-6 h-6" />
                   </div>
                   <div className="space-y-1 my-auto">
@@ -150,13 +150,13 @@ export default function BookResultModal({
 
             {/* Title & Author Header */}
             <div className="space-y-1.5 flex-1">
-              <span style={{ backgroundColor: '#EAE1D3', color: '#3D2314', borderColor: '#D97706' }} className="inline-block px-2.5 py-0.5 border text-[11px] font-bold rounded-full uppercase tracking-wider font-serif">
+              <span style={{ backgroundColor: '#F2E8D8', color: '#3D2314', borderColor: '#8C593B' }} className="inline-block px-2.5 py-0.5 border text-[11px] font-bold rounded-full uppercase tracking-wider font-serif">
                 Naskenovaná kniha
               </span>
               <h2 style={{ color: '#3D2314' }} className="text-xl font-extrabold font-serif leading-tight">
                 {book.title}
               </h2>
-              <p style={{ color: '#C26200' }} className="text-sm font-bold">
+              <p style={{ color: '#5C3A24' }} className="text-sm font-bold">
                 {book.author}
               </p>
             </div>
@@ -166,7 +166,7 @@ export default function BookResultModal({
           <div style={{ backgroundColor: '#FAF6F0', borderColor: '#E6D7C3' }} className="rounded-2xl p-4 border space-y-3 text-xs">
             <div style={{ borderColor: '#E6D7C3' }} className="flex items-center justify-between py-1.5 border-b">
               <span style={{ color: '#5C3A24' }} className="flex items-center gap-2 font-medium">
-                <Book className="w-4 h-4 text-amber-600 shrink-0" />
+                <Book className="w-4 h-4 shrink-0" style={{ color: '#8C593B' }} />
                 Název
               </span>
               <span style={{ color: '#3D2314' }} className="font-bold text-right max-w-[200px] truncate font-serif">{book.title}</span>
@@ -174,7 +174,7 @@ export default function BookResultModal({
 
             <div style={{ borderColor: '#E6D7C3' }} className="flex items-center justify-between py-1.5 border-b">
               <span style={{ color: '#5C3A24' }} className="flex items-center gap-2 font-medium">
-                <Users className="w-4 h-4 text-amber-600 shrink-0" />
+                <Users className="w-4 h-4 shrink-0" style={{ color: '#8C593B' }} />
                 Autor
               </span>
               <span style={{ color: '#3D2314' }} className="font-bold text-right max-w-[200px] truncate">{book.author}</span>
@@ -182,7 +182,7 @@ export default function BookResultModal({
 
             <div style={{ borderColor: '#E6D7C3' }} className="flex items-center justify-between py-1.5 border-b">
               <span style={{ color: '#5C3A24' }} className="flex items-center gap-2 font-medium">
-                <Calendar className="w-4 h-4 text-amber-600 shrink-0" />
+                <Calendar className="w-4 h-4 shrink-0" style={{ color: '#8C593B' }} />
                 Rok vydání
               </span>
               <span style={{ color: '#3D2314' }} className="font-bold">{book.year}</span>
@@ -190,7 +190,7 @@ export default function BookResultModal({
 
             <div style={{ borderColor: '#E6D7C3' }} className="flex items-center justify-between py-1.5 border-b">
               <span style={{ color: '#5C3A24' }} className="flex items-center gap-2 font-medium">
-                <Building2 className="w-4 h-4 text-amber-600 shrink-0" />
+                <Building2 className="w-4 h-4 shrink-0" style={{ color: '#8C593B' }} />
                 Nakladatelství
               </span>
               <span style={{ color: '#3D2314' }} className="font-bold text-right max-w-[200px] truncate">{book.publisher}</span>
@@ -198,7 +198,7 @@ export default function BookResultModal({
 
             <div style={{ borderColor: '#E6D7C3' }} className="flex items-center justify-between py-1.5 border-b">
               <span style={{ color: '#5C3A24' }} className="flex items-center gap-2 font-medium">
-                <Tag className="w-4 h-4 text-amber-600 shrink-0" />
+                <Tag className="w-4 h-4 shrink-0" style={{ color: '#8C593B' }} />
                 Žánr
               </span>
               <span style={{ color: '#3D2314' }} className="font-bold text-right max-w-[200px] truncate">{book.genre}</span>
@@ -206,15 +206,15 @@ export default function BookResultModal({
 
             <div style={{ borderColor: '#E6D7C3' }} className="flex items-center justify-between py-1.5 border-b">
               <span style={{ color: '#5C3A24' }} className="flex items-center gap-2 font-medium">
-                <Users className="w-4 h-4 text-amber-600 shrink-0" />
+                <Users className="w-4 h-4 shrink-0" style={{ color: '#8C593B' }} />
                 Cílená věková skupina
               </span>
-              <span style={{ color: '#C26200' }} className="font-extrabold">{book.ageGroup}</span>
+              <span style={{ color: '#5C3A24' }} className="font-extrabold">{book.ageGroup}</span>
             </div>
 
             <div style={{ borderColor: '#E6D7C3' }} className="flex items-center justify-between py-1.5 border-b">
               <span style={{ color: '#5C3A24' }} className="flex items-center gap-2 font-medium">
-                <Globe className="w-4 h-4 text-amber-600 shrink-0" />
+                <Globe className="w-4 h-4 shrink-0" style={{ color: '#8C593B' }} />
                 Jazyk
               </span>
               <span style={{ color: '#3D2314' }} className="font-bold">{book.language}</span>
@@ -222,19 +222,19 @@ export default function BookResultModal({
 
             <div className="flex items-center justify-between py-1.5">
               <span style={{ color: '#5C3A24' }} className="flex items-center gap-2 font-medium">
-                <Hash className="w-4 h-4 text-amber-600 shrink-0" />
+                <Hash className="w-4 h-4 shrink-0" style={{ color: '#8C593B' }} />
                 ISBN
               </span>
-              <span style={{ color: '#C26200' }} className="font-mono font-bold">{book.isbn}</span>
+              <span style={{ color: '#5C3A24' }} className="font-mono font-bold">{book.isbn}</span>
             </div>
           </div>
         </div>
 
         {/* Bottom Action Bar */}
-        <div style={{ backgroundColor: '#EAE1D3', borderColor: '#E6D7C3' }} className="p-4 border-t flex items-center gap-3 shrink-0">
+        <div style={{ backgroundColor: '#F2E8D8', borderColor: '#E6D7C3' }} className="p-4 border-t flex items-center gap-3 shrink-0">
           <button
             onClick={onClose}
-            style={{ backgroundColor: '#FAF6F0', borderColor: '#E6D7C3', color: '#3D2314' }}
+            style={{ backgroundColor: '#FAF6F0', borderColor: '#8C593B', color: '#3D2314' }}
             className="flex-1 py-3.5 px-4 font-bold text-xs rounded-2xl border text-center cursor-pointer"
           >
             Zrušit
@@ -244,8 +244,8 @@ export default function BookResultModal({
             onClick={handleSave}
             disabled={isSaved}
             style={{
-              backgroundColor: isSaved ? '#15803D' : '#D97706',
-              color: '#FFFDF9'
+              backgroundColor: isSaved ? '#15803D' : '#4A2E1B',
+              color: '#FAF6F0'
             }}
             className="flex-1 py-3.5 px-4 font-extrabold text-xs rounded-2xl flex items-center justify-center gap-2 uppercase tracking-wider font-serif cursor-pointer"
           >
