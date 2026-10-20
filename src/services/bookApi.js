@@ -12,6 +12,21 @@ export function normalizeIsbn(isbn) {
   return clean;
 }
 
+// Convert third-party metadata to safe, readable React text.
+export function toDisplayText(value, fallback = '') {
+  if (value == null) return fallback;
+  if (typeof value === 'string' || typeof value === 'number' || typeof value === 'bigint') return String(value);
+  if (Array.isArray(value)) {
+    return value.map((item) => toDisplayText(item)).filter(Boolean).join(', ') || fallback;
+  }
+  if (typeof value === 'object') {
+    for (const key of ['name', 'title', 'label', 'text', 'value', 'url', 'href']) {
+      if (value[key] != null) return toDisplayText(value[key], fallback);
+    }
+  }
+  return fallback;
+}
+
 // Fetch helper with timeout
 async function fetchWithTimeout(url, options = {}, timeoutMs = 4000) {
   const controller = new AbortController();
@@ -70,7 +85,9 @@ const LANGUAGE_MAP = {
 function translateGenre(categories) {
   if (!categories || categories.length === 0) return 'Beletrie';
 
-  const raw = Array.isArray(categories) ? categories.join(', ') : String(categories);
+  const raw = Array.isArray(categories)
+    ? categories.map((category) => toDisplayText(category)).filter(Boolean).join(', ')
+    : toDisplayText(categories);
   const lower = raw.toLowerCase();
 
   if (lower.includes('children') || lower.includes('juvenile') || lower.includes('děti') || lower.includes('mládež')) {
@@ -193,10 +210,14 @@ async function fetchKnihovnyCz(cleanIsbn) {
     if (!data.records || data.records.length === 0) return null;
 
     const record = data.records[0];
-    const title = record.title || '';
-    const author = record.authors ? (Array.isArray(record.authors) ? record.authors.join(', ') : record.authors) : '';
-    const year = record.publishDate ? String(record.publishDate) : '';
-    const publisher = record.publisher ? (Array.isArray(record.publisher) ? record.publisher[0] : record.publisher) : '';
+    const title = toDisplayText(record.title);
+    const author = Array.isArray(record.authors)
+      ? record.authors.map((item) => toDisplayText(item)).filter(Boolean).join(', ')
+      : toDisplayText(record.authors);
+    const year = toDisplayText(record.publishDate);
+    const publisher = Array.isArray(record.publisher)
+      ? toDisplayText(record.publisher[0])
+      : toDisplayText(record.publisher);
     const genre = translateGenre(record.genres || record.topic);
     const cover = record.cover ? `https://www.obalkyknih.cz/file/cover/${cleanIsbn}/medium` : null;
 
@@ -244,10 +265,10 @@ async function fetchGoogleBooks(cleanIsbn) {
     const lang = info.language ? (LANGUAGE_MAP[info.language.toLowerCase()] || info.language.toUpperCase()) : 'Čeština';
 
     return {
-      title: info.title || '',
-      author: info.authors ? info.authors.join(', ') : '',
-      year: year,
-      publisher: info.publisher || '',
+      title: toDisplayText(info.title),
+      author: Array.isArray(info.authors) ? info.authors.map((item) => toDisplayText(item)).filter(Boolean).join(', ') : '',
+      year: toDisplayText(year),
+      publisher: toDisplayText(info.publisher),
       genre: translateGenre(info.categories),
       ageGroup: inferAgeGroup(info.categories, info.title, info.description),
       language: lang,
@@ -278,10 +299,10 @@ async function fetchOpenLibrary(cleanIsbn) {
       if (!sData.docs || sData.docs.length === 0) return null;
       const doc = sData.docs[0];
       return {
-        title: doc.title || '',
-        author: doc.author_name ? doc.author_name.join(', ') : '',
-        year: doc.first_publish_year ? String(doc.first_publish_year) : '',
-        publisher: doc.publisher ? doc.publisher[0] : '',
+        title: toDisplayText(doc.title),
+        author: Array.isArray(doc.author_name) ? doc.author_name.map((item) => toDisplayText(item)).filter(Boolean).join(', ') : '',
+        year: toDisplayText(doc.first_publish_year),
+        publisher: Array.isArray(doc.publisher) ? toDisplayText(doc.publisher[0]) : toDisplayText(doc.publisher),
         genre: translateGenre(doc.subject),
         ageGroup: inferAgeGroup(doc.subject, doc.title),
         language: doc.language ? (LANGUAGE_MAP[doc.language[0]] || doc.language[0]) : 'Čeština',
@@ -290,9 +311,9 @@ async function fetchOpenLibrary(cleanIsbn) {
     }
 
     const year = book.publish_date ? (book.publish_date.match(/\d{4}/)?.[0] || book.publish_date) : '';
-    const authors = book.authors ? book.authors.map(a => a.name).join(', ') : '';
-    const publishers = book.publishers ? book.publishers.map(p => p.name).join(', ') : '';
-    const categories = book.subjects ? book.subjects.map(s => s.name) : [];
+    const authors = Array.isArray(book.authors) ? book.authors.map((item) => toDisplayText(item?.name ?? item)).filter(Boolean).join(', ') : '';
+    const publishers = Array.isArray(book.publishers) ? book.publishers.map((item) => toDisplayText(item?.name ?? item)).filter(Boolean).join(', ') : '';
+    const categories = Array.isArray(book.subjects) ? book.subjects.map((item) => toDisplayText(item?.name ?? item)).filter(Boolean) : [];
 
     let cover = null;
     if (book.cover) {
@@ -355,22 +376,22 @@ export async function fetchBookByIsbn(rawIsbn) {
     return null;
   }
 
-  const title = knihovnyData?.title || gbData?.title || olData?.title;
-  const author = knihovnyData?.author || gbData?.author || olData?.author || 'Neznámý autor';
-  const year = knihovnyData?.year || gbData?.year || olData?.year || 'Neuvedeno';
-  const publisher = knihovnyData?.publisher || gbData?.publisher || olData?.publisher || 'Neuvedeno';
-  const genre = knihovnyData?.genre || gbData?.genre || olData?.genre || 'Všeobecná literatura';
-  const ageGroup = knihovnyData?.ageGroup || gbData?.ageGroup || olData?.ageGroup || 'Všeobecná veřejnost';
-  const language = knihovnyData?.language || gbData?.language || olData?.language || 'Čeština';
+  const title = toDisplayText(knihovnyData?.title || gbData?.title || olData?.title);
+  const author = toDisplayText(knihovnyData?.author || gbData?.author || olData?.author, 'Neznámý autor');
+  const year = toDisplayText(knihovnyData?.year || gbData?.year || olData?.year, 'Neuvedeno');
+  const publisher = toDisplayText(knihovnyData?.publisher || gbData?.publisher || olData?.publisher, 'Neuvedeno');
+  const genre = toDisplayText(knihovnyData?.genre || gbData?.genre || olData?.genre, 'Všeobecná literatura');
+  const ageGroup = toDisplayText(knihovnyData?.ageGroup || gbData?.ageGroup || olData?.ageGroup, 'Všeobecná veřejnost');
+  const language = toDisplayText(knihovnyData?.language || gbData?.language || olData?.language, 'Čeština');
 
   // Cover fallback priority:
   // 1. ObálkyKnih (obalkyknih.cz)
   // 2. Google Books cover
   // 3. Open Library cover
   let cover = `https://www.obalkyknih.cz/file/cover/${cleanIsbn}/medium`;
-  if (gbData?.cover) cover = gbData.cover;
-  else if (olData?.cover) cover = olData.cover;
-  else if (knihovnyData?.cover) cover = knihovnyData.cover;
+  if (gbData?.cover) cover = toDisplayText(gbData.cover);
+  else if (olData?.cover) cover = toDisplayText(olData.cover);
+  else if (knihovnyData?.cover) cover = toDisplayText(knihovnyData.cover);
 
   return {
     id: `${cleanIsbn}-${Date.now()}`,
