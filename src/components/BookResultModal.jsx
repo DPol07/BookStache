@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, BookmarkPlus, RotateCcw, Book, Calendar, Building2, Tag, Users, Globe, Hash, AlertTriangle, RefreshCw, CheckCircle2, BookmarkCheck, ExternalLink } from 'lucide-react';
+import BookCoverImage from './BookCoverImage';
 
 export default function BookResultModal({
   isOpen,
@@ -12,13 +13,11 @@ export default function BookResultModal({
   onRetryScan,
   onOpenManualInput,
 }) {
-  const [imageError, setImageError] = useState(false);
-  const [useFallback, setUseFallback] = useState(false);
+  const [resolvedCover, setResolvedCover] = useState(book?.cover || null);
   const [isSaved, setIsSaved] = useState(false);
 
   useEffect(() => {
-    setImageError(false);
-    setUseFallback(false);
+    setResolvedCover(book?.cover || null);
     setIsSaved(false);
   }, [book]);
 
@@ -91,21 +90,15 @@ export default function BookResultModal({
     );
   }
 
-  // Handle Cover Image Error
-  const handleImageError = () => {
-    if (!useFallback && book.fallbackCover && book.cover !== book.fallbackCover) {
-      setUseFallback(true);
-    } else {
-      setImageError(true);
-    }
-  };
-
-  const currentCoverUrl = useFallback ? book.fallbackCover : book.cover;
-
   // Book Found State
   const handleSave = () => {
     setIsSaved(true);
-    onSaveBook(book);
+    // Persist verified cover as book.cover
+    const bookToSave = {
+      ...book,
+      cover: resolvedCover || book.cover,
+    };
+    onSaveBook(bookToSave);
   };
 
   const isDuplicate = !!existingDuplicate;
@@ -152,27 +145,11 @@ export default function BookResultModal({
           <div className="flex flex-col sm:flex-row gap-4 items-center sm:items-start text-center sm:text-left pt-1">
             {/* Book Cover / Placeholder */}
             <div style={{ backgroundColor: '#F2E8D8', borderColor: '#8C593B' }} className="relative w-28 h-40 shrink-0 rounded-xl overflow-hidden border flex items-center justify-center">
-              {currentCoverUrl && !imageError ? (
-                <img
-                  src={currentCoverUrl}
-                  alt={book.title}
-                  onError={handleImageError}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div style={{ backgroundColor: '#F2E8D8', color: '#3D2314' }} className="flex flex-col items-center justify-between p-3 text-center w-full h-full">
-                  <div style={{ backgroundColor: '#4A2E1B', color: '#FAF6F0' }} className="p-1.5 rounded-full mt-2">
-                    <Book className="w-6 h-6" />
-                  </div>
-                  <div className="space-y-1 my-auto">
-                    <span className="text-[10px] font-bold leading-snug line-clamp-3 block px-1 font-serif">{book.title}</span>
-                    <span style={{ color: '#5C3A24' }} className="text-[9px] truncate max-w-full block px-1">{book.author}</span>
-                  </div>
-                  <span style={{ color: '#8C593B', borderColor: '#E6D7C3' }} className="text-[8px] font-mono border-t pt-1 w-full truncate">
-                    {book.isbn}
-                  </span>
-                </div>
-              )}
+              <BookCoverImage
+                book={book}
+                size="normal"
+                onResolvedCover={(url) => setResolvedCover(url)}
+              />
             </div>
 
             {/* Title & Author Header */}
