@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { X, Search, Library, Trash2, Book, ChevronRight, Plus } from 'lucide-react';
+import BookCover from './BookCover.jsx';
 
 export default function LibraryModal({
   isOpen,
@@ -126,26 +127,15 @@ export default function LibraryModal({
                 className="group relative flex items-center gap-3.5 p-3 border rounded-2xl transition-all active:scale-[0.99] cursor-pointer"
               >
                 {/* Book Cover */}
-                <div style={{ backgroundColor: '#F2E8D8', borderColor: '#8C593B' }} className="relative w-14 h-20 shrink-0 rounded-xl overflow-hidden border flex items-center justify-center">
-                  {book.cover ? (
-                    <img
-                      src={book.cover}
-                      alt={book.title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                      onError={(e) => {
-                        e.target.style.display = 'none';
-                        if (e.target.nextSibling) e.target.nextSibling.style.display = 'flex';
-                      }}
-                    />
-                  ) : null}
-                  <div
-                    className="flex flex-col items-center justify-center p-1 text-[9px] text-center w-full h-full"
-                    style={{ display: book.cover ? 'none' : 'flex', backgroundColor: '#F2E8D8', color: '#3D2314' }}
-                  >
-                    <Book className="w-5 h-5 mb-0.5" style={{ color: '#5C3A24' }} />
-                    <span className="line-clamp-2 leading-tight text-[8px] font-serif">{book.title}</span>
-                  </div>
-                </div>
+                <BookCover
+                  book={book}
+                  size="thumb"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                  containerClassName="relative w-14 h-20 shrink-0 rounded-xl overflow-hidden border flex items-center justify-center"
+                  containerStyle={{ backgroundColor: '#F2E8D8', borderColor: '#8C593B' }}
+                  placeholderStyle={{ backgroundColor: '#F2E8D8', color: '#3D2314' }}
+                  showIsbn={false}
+                />
 
                 {/* Info Text */}
                 <div className="flex-1 min-w-0 pr-2">

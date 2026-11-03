@@ -12,7 +12,8 @@ test('returns render-safe fields for object-shaped Knihovny.cz metadata', async 
   const originalFetch = globalThis.fetch;
   t.after(() => { globalThis.fetch = originalFetch; });
   globalThis.fetch = async (url) => {
-    if (String(url).includes('www.knihovny.cz')) {
+    const urlStr = String(url);
+    if (urlStr.includes('www.knihovny.cz')) {
       return {
         ok: true,
         json: async () => ({ records: [{
@@ -25,6 +26,12 @@ test('returns render-safe fields for object-shaped Knihovny.cz metadata', async 
         }] }),
       };
     }
+    if (urlStr.includes('obalkyknih.cz/view')) {
+      return {
+        ok: true,
+        text: async () => '<img src="https://www.obalkyknih.cz/file/cover/12345/medium" />',
+      };
+    }
     return { ok: false, json: async () => ({}) };
   };
 
@@ -35,4 +42,7 @@ test('returns render-safe fields for object-shaped Knihovny.cz metadata', async 
   assert.equal(book.publisher, 'Portfolio');
   assert.equal(book.genre, 'Business');
   assert.equal(typeof book.cover, 'string');
+  assert.equal(book.cover, 'https://www.obalkyknih.cz/file/cover/12345/medium');
+  assert.ok(Array.isArray(book.coverCandidates));
+  assert.ok(book.coverCandidates.includes('https://www.obalkyknih.cz/file/cover/12345/medium'));
 });
