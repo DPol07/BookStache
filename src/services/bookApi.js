@@ -200,6 +200,172 @@ const OFFLINE_CATALOG = {
   }
 };
 
+// Cover Source 1: ObálkyKnih by ISBN
+export async function fetchObalkyKnihCover(cleanIsbn) {
+  if (!cleanIsbn) return null;
+  try {
+    const url = `https://www.obalkyknih.cz/view?isbn=${cleanIsbn}`;
+    const response = await fetchWithTimeout(url, {}, 3500);
+    if (!response.ok) return `https://www.obalkyknih.cz/file/cover/${cleanIsbn}/medium`;
+    const html = await response.text();
+    // Look for resolved cover file URL, e.g. https://www.obalkyknih.cz/file/cover/515891/medium
+    const match = html.match(/https?:\/\/www\.obalkyknih\.cz\/file\/cover\/\d+\/(medium|preview510)/);
+    if (match) {
+      return match[0].replace(/^http:/, 'https:');
+    }
+    return `https://www.obalkyknih.cz/file/cover/${cleanIsbn}/medium`;
+  } catch (e) {
+    console.warn('ObálkyKnih fetch error:', e);
+    return `https://www.obalkyknih.cz/file/cover/${cleanIsbn}/medium`;
+  }
+}
+
+// Cover Source 4: Google Books by Title and Author
+export async function fetchGoogleBooksCoverByTitleAuthor(title, author) {
+  if (!title) return null;
+  try {
+    const cleanAuthor = author && author !== 'Neznámý autor' ? author : '';
+    const q = cleanAuthor
+      ? `intitle:${encodeURIComponent(title)} inauthor:${encodeURIComponent(cleanAuthor)}`
+      : `intitle:${encodeURIComponent(title)}`;
+    const url = `https://www.googleapis.com/books/v1/volumes?q=${q}&maxResults=3`;
+    const response = await fetchWithTimeout(url, {}, 3500);
+    if (!response.ok) return null;
+    const data = await response.json();
+    if (!data.items || data.items.length === 0) return null;
+
+    for (const item of data.items) {
+      const info = item.volumeInfo;
+      const coverUrl = info?.imageLinks
+        ? (info.imageLinks.extraLarge || info.imageLinks.large || info.imageLinks.medium || info.imageLinks.thumbnail || info.imageLinks.smallThumbnail)
+        : null;
+      if (coverUrl) {
+        return coverUrl.replace(/^http:/, 'https:').replace('&edge=curl', '');
+      }
+    }
+    return null;
+  } catch (e) {
+    console.warn('Google Books title/author cover search error:', e);
+    return null;
+  }
+}
+
+// Cover Source 5: Open Library by Title and Author
+export async function fetchOpenLibraryCoverByTitleAuthor(title, author) {
+  if (!title) return null;
+  try {
+    const cleanAuthor = author && author !== 'Neznámý autor' ? author.replace(/\b[A-Z]\.\s*/g, '').trim() : '';
+    const q = cleanAuthor
+      ? encodeURIComponent(`${title} ${cleanAuthor}`)
+      : encodeURIComponent(title);
+    const url = `https://openlibrary.org/search.json?q=${q}&limit=5`;
+    const response = await fetchWithTimeout(url, {}, 3500);
+    if (!response.ok) return null;
+    const data = await response.json();
+    if (!data.docs || data.docs.length === 0) return null;
+
+    const docWithCover = data.docs.find((doc) => doc.cover_i);
+    if (docWithCover && docWithCover.cover_i) {
+      return `https://covers.openlibrary.org/b/id/${docWithCover.cover_i}-L.jpg?default=false`;
+    }
+    return null;
+  } catch (e) {
+    console.warn('Open Library title/author cover search error:', e);
+    return null;
+  }
+}
+
+// Compute an ordered list of candidate cover URLs based on user priority:
+// 1. ObálkyKnih by ISBN
+// 2. Google Books by ISBN
+// 3. Open Library by ISBN
+// 4. Google Books by title and author
+// 5. Open Library by title and author
+export async function getOrderedCoverCandidates(options = {}) {
+  const { isbn, title, author, existingCover, gbCover, olCover, obalkyCover } = options;
+  const cleanIsbn = isbn ? normalizeIsbn(isbn) : '';
+
+  // 1. ObálkyKnih by ISBN
+  let p1Obalky = obalkyCover || null;
+  if (!p1Obalky && cleanIsbn) {
+    p1Obalky = await fetchObalkyKnihCover(cleanIsbn);
+  }
+
+  // 2. Google Books by ISBN
+  const p2GbIsbn = gbCover || null;
+
+  // 3. Open Library by ISBN
+  let p3OlIsbn = olCover || null;
+  if (!p3OlIsbn && cleanIsbn) {
+    p3OlIsbn = `https://covers.openlibrary.org/b/isbn/${cleanIsbn}-L.jpg?default=false`;
+  }
+
+  // 4 & 5. Query Title and Author candidates asynchronously in parallel
+  const [gbTitleResult, olTitleResult] = await Promise.allSettled([
+    title ? fetchGoogleBooksCoverByTitleAuthor(title, author) : Promise.resolve(null),
+    title ? fetchOpenLibraryCoverByTitleAuthor(title, author) : Promise.resolve(null),
+  ]);
+
+  const p4GbTitle = gbTitleResult.status === 'fulfilled' ? gbTitleResult.value : null;
+  const p5OlTitle = olTitleResult.status === 'fulfilled' ? olTitleResult.value : null;
+
+  // Assemble list strictly respecting priority 1 -> 2 -> 3 -> 4 -> 5
+  const rawList = [
+    p1Obalky,
+    p2GbIsbn,
+    p3OlIsbn,
+    p4GbTitle,
+    p5OlTitle,
+    existingCover, // Preserve existing book cover as candidate if not already included
+  ];
+
+  // Filter out null/undefined/empty and remove duplicates while preserving priority order
+  const seen = new Set();
+  const candidates = [];
+  for (const url of rawList) {
+    if (url && typeof url === 'string') {
+      const trimmed = url.trim();
+      if (trimmed && !seen.has(trimmed)) {
+        seen.add(trimmed);
+        candidates.push(trimmed);
+      }
+    }
+  }
+
+  return candidates;
+}
+
+// Synchronous candidate extractor for instant rendering while background queries run
+export function getInitialCoverCandidates(book) {
+  if (!book) return [];
+  if (Array.isArray(book.coverCandidates) && book.coverCandidates.length > 0) {
+    return book.coverCandidates.filter(Boolean);
+  }
+
+  const cleanIsbn = book.rawIsbn || normalizeIsbn(book.isbn);
+  const candidates = [];
+  const seen = new Set();
+
+  const add = (url) => {
+    if (url && typeof url === 'string') {
+      const trimmed = url.trim();
+      if (trimmed && !seen.has(trimmed)) {
+        seen.add(trimmed);
+        candidates.push(trimmed);
+      }
+    }
+  };
+
+  // 1. ObálkyKnih
+  if (cleanIsbn) add(`https://www.obalkyknih.cz/file/cover/${cleanIsbn}/medium`);
+  // 2 & 3. Primary and fallback covers
+  if (book.cover) add(book.cover);
+  if (book.fallbackCover) add(book.fallbackCover);
+  if (cleanIsbn) add(`https://covers.openlibrary.org/b/isbn/${cleanIsbn}-L.jpg?default=false`);
+
+  return candidates;
+}
+
 // Fetch book details from Knihovny.cz API (Czech National Union Catalog API)
 async function fetchKnihovnyCz(cleanIsbn) {
   try {
@@ -306,7 +472,7 @@ async function fetchOpenLibrary(cleanIsbn) {
         genre: translateGenre(doc.subject),
         ageGroup: inferAgeGroup(doc.subject, doc.title),
         language: doc.language ? (LANGUAGE_MAP[doc.language[0]] || doc.language[0]) : 'Čeština',
-        cover: doc.cover_i ? `https://covers.openlibrary.org/b/id/${doc.cover_i}-L.jpg` : `https://covers.openlibrary.org/b/isbn/${cleanIsbn}-L.jpg`,
+        cover: doc.cover_i ? `https://covers.openlibrary.org/b/id/${doc.cover_i}-L.jpg` : `https://covers.openlibrary.org/b/isbn/${cleanIsbn}-L.jpg?default=false`,
       };
     }
 
@@ -319,7 +485,7 @@ async function fetchOpenLibrary(cleanIsbn) {
     if (book.cover) {
       cover = book.cover.large || book.cover.medium || book.cover.small;
     } else {
-      cover = `https://covers.openlibrary.org/b/isbn/${cleanIsbn}-L.jpg`;
+      cover = `https://covers.openlibrary.org/b/isbn/${cleanIsbn}-L.jpg?default=false`;
     }
 
     const lang = book.languages ? (LANGUAGE_MAP[book.languages[0]?.key?.replace('/languages/', '')] || 'Čeština') : 'Čeština';
@@ -350,26 +516,36 @@ export async function fetchBookByIsbn(rawIsbn) {
   // 1. Immediate offline catalog check (Instant result if present)
   const offlineMatch = OFFLINE_CATALOG[cleanIsbn];
   if (offlineMatch) {
+    const initialCandidates = [
+      `https://www.obalkyknih.cz/file/cover/${cleanIsbn}/medium`,
+      offlineMatch.cover,
+      `https://covers.openlibrary.org/b/isbn/${cleanIsbn}-L.jpg?default=false`,
+    ].filter(Boolean);
+
     return {
       id: `${cleanIsbn}-${Date.now()}`,
       isbn: formatIsbnDisplay(cleanIsbn),
       rawIsbn: cleanIsbn,
       ...offlineMatch,
-      fallbackCover: offlineMatch.cover || `https://covers.openlibrary.org/b/isbn/${cleanIsbn}-L.jpg`,
+      cover: offlineMatch.cover || initialCandidates[0],
+      coverCandidates: initialCandidates,
+      fallbackCover: `https://covers.openlibrary.org/b/isbn/${cleanIsbn}-L.jpg?default=false`,
       scannedAt: new Date().toISOString(),
     };
   }
 
-  // 2. Query external APIs in parallel (Knihovny.cz, Google Books, Open Library)
-  const [knihovnyResult, gbResult, olResult] = await Promise.allSettled([
+  // 2. Query external metadata APIs and ObálkyKnih in parallel
+  const [knihovnyResult, gbResult, olResult, obalkyResult] = await Promise.allSettled([
     fetchKnihovnyCz(cleanIsbn),
     fetchGoogleBooks(cleanIsbn),
     fetchOpenLibrary(cleanIsbn),
+    fetchObalkyKnihCover(cleanIsbn),
   ]);
 
   const knihovnyData = knihovnyResult.status === 'fulfilled' ? knihovnyResult.value : null;
   const gbData = gbResult.status === 'fulfilled' ? gbResult.value : null;
   const olData = olResult.status === 'fulfilled' ? olResult.value : null;
+  const obalkyCover = obalkyResult.status === 'fulfilled' ? obalkyResult.value : null;
 
   // If no API returned any book data, return null so UI displays "Kniha nebyla nalezena"
   if (!knihovnyData && !gbData && !olData) {
@@ -384,14 +560,23 @@ export async function fetchBookByIsbn(rawIsbn) {
   const ageGroup = toDisplayText(knihovnyData?.ageGroup || gbData?.ageGroup || olData?.ageGroup, 'Všeobecná veřejnost');
   const language = toDisplayText(knihovnyData?.language || gbData?.language || olData?.language, 'Čeština');
 
-  // Cover fallback priority:
-  // 1. ObálkyKnih (obalkyknih.cz)
-  // 2. Google Books cover
-  // 3. Open Library cover
-  let cover = `https://www.obalkyknih.cz/file/cover/${cleanIsbn}/medium`;
-  if (gbData?.cover) cover = toDisplayText(gbData.cover);
-  else if (olData?.cover) cover = toDisplayText(olData.cover);
-  else if (knihovnyData?.cover) cover = toDisplayText(knihovnyData.cover);
+  // Compute prioritized cover candidates:
+  // 1. ObálkyKnih by ISBN
+  // 2. Google Books by ISBN
+  // 3. Open Library by ISBN
+  // 4. Google Books by title and author
+  // 5. Open Library by title and author
+  const coverCandidates = await getOrderedCoverCandidates({
+    isbn: cleanIsbn,
+    title: title,
+    author: author,
+    obalkyCover: obalkyCover || knihovnyData?.cover,
+    gbCover: gbData?.cover,
+    olCover: olData?.cover,
+  });
+
+  const primaryCover = coverCandidates[0] || `https://www.obalkyknih.cz/file/cover/${cleanIsbn}/medium`;
+  const secondaryCover = coverCandidates[1] || `https://covers.openlibrary.org/b/isbn/${cleanIsbn}-L.jpg?default=false`;
 
   return {
     id: `${cleanIsbn}-${Date.now()}`,
@@ -404,8 +589,9 @@ export async function fetchBookByIsbn(rawIsbn) {
     genre: genre,
     ageGroup: ageGroup,
     language: language,
-    cover: cover,
-    fallbackCover: `https://covers.openlibrary.org/b/isbn/${cleanIsbn}-L.jpg`,
+    cover: primaryCover,
+    coverCandidates: coverCandidates,
+    fallbackCover: secondaryCover,
     scannedAt: new Date().toISOString(),
   };
 }

@@ -20,6 +20,8 @@ test('fetchBookByIsbn returns built-in sample Harry Potter offline immediately',
   assert.equal(result.title, 'Harry Potter a Kámen mudrců');
   assert.equal(result.author, 'J. K. Rowlingová');
   assert.equal(result.publisher, 'Albatros');
+  assert.ok(Array.isArray(result.coverCandidates));
+  assert.ok(result.coverCandidates.length > 0);
 });
 
 test('fetchBookByIsbn returns null for empty string or invalid ISBN length', async () => {

@@ -94,12 +94,21 @@ test('findDuplicateBook falls back to title and author when ISBN is missing', ()
 test('saveBook prevents duplicates in localStorage', () => {
   // Mock localStorage
   const store = {};
-  global.localStorage = {
+  const mockStorage = {
     getItem: (key) => store[key] || null,
     setItem: (key, val) => { store[key] = val; },
     removeItem: (key) => { delete store[key]; },
     clear: () => { Object.keys(store).forEach(k => delete store[k]); },
   };
+  try {
+    Object.defineProperty(globalThis, 'localStorage', {
+      value: mockStorage,
+      configurable: true,
+      writable: true,
+    });
+  } catch {
+    globalThis.localStorage = mockStorage;
+  }
 
   const book1 = {
     id: 'hp-1',

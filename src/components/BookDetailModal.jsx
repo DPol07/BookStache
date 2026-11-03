@@ -1,15 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { X, Trash2, Book, Calendar, Building2, Tag, Users, Globe, Hash, Clock } from 'lucide-react';
+import BookCover from './BookCover.jsx';
 
 export default function BookDetailModal({ isOpen, book, onClose, onDeleteBook }) {
-  const [imageError, setImageError] = useState(false);
-  const [useFallback, setUseFallback] = useState(false);
-
-  useEffect(() => {
-    setImageError(false);
-    setUseFallback(false);
-  }, [book]);
-
   if (!isOpen || !book) return null;
 
   const formattedDate = book.savedAt
@@ -19,16 +12,6 @@ export default function BookDetailModal({ isOpen, book, onClose, onDeleteBook })
         year: 'numeric',
       })
     : null;
-
-  const handleImageError = () => {
-    if (!useFallback && book.fallbackCover && book.cover !== book.fallbackCover) {
-      setUseFallback(true);
-    } else {
-      setImageError(true);
-    }
-  };
-
-  const currentCoverUrl = useFallback ? book.fallbackCover : book.cover;
 
   return (
     <div style={{ backgroundColor: '#FAF6F0' }} className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 animate-fadeIn overflow-y-auto">
@@ -48,29 +31,11 @@ export default function BookDetailModal({ isOpen, book, onClose, onDeleteBook })
           {/* Cover & Hero Section */}
           <div className="flex flex-col sm:flex-row gap-4 items-center sm:items-start text-center sm:text-left pt-2">
             {/* Book Cover / Placeholder */}
-            <div style={{ backgroundColor: '#F2E8D8', borderColor: '#8C593B' }} className="relative w-28 h-40 shrink-0 rounded-xl overflow-hidden border flex items-center justify-center">
-              {currentCoverUrl && !imageError ? (
-                <img
-                  src={currentCoverUrl}
-                  alt={book.title}
-                  onError={handleImageError}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div style={{ backgroundColor: '#F2E8D8', color: '#3D2314' }} className="flex flex-col items-center justify-between p-3 text-center w-full h-full">
-                  <div style={{ backgroundColor: '#4A2E1B', color: '#FAF6F0' }} className="p-1.5 rounded-full mt-2">
-                    <Book className="w-6 h-6" />
-                  </div>
-                  <div className="space-y-1 my-auto">
-                    <span className="text-[10px] font-bold leading-snug line-clamp-3 block px-1 font-serif">{book.title}</span>
-                    <span style={{ color: '#5C3A24' }} className="text-[9px] truncate max-w-full block px-1">{book.author}</span>
-                  </div>
-                  <span style={{ color: '#8C593B', borderColor: '#E6D7C3' }} className="text-[8px] font-mono border-t pt-1 w-full truncate">
-                    {book.isbn}
-                  </span>
-                </div>
-              )}
-            </div>
+            <BookCover
+              book={book}
+              containerStyle={{ backgroundColor: '#F2E8D8', borderColor: '#8C593B' }}
+              placeholderStyle={{ backgroundColor: '#F2E8D8', color: '#3D2314' }}
+            />
 
             {/* Title & Author Header */}
             <div className="space-y-1.5 flex-1">
