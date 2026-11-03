@@ -105,11 +105,12 @@ export function translateGenre(categories) {
   if (lower.includes('detective') || lower.includes('mystery') || lower.includes('detektiv')) return 'Detektivky a krimi';
   if (lower.includes('thriller')) return 'Napínavé / Thriller';
   if (lower.includes('romance') || lower.includes('romant')) return 'Romantická literatura';
-  if (lower.includes('history') || lower.includes('histor')) return 'Historická literatura';
+  if (lower.includes('history') || lower.includes('histor') || lower.includes('válk')) return 'Historická literatura';
   if (lower.includes('biography') || lower.includes('autobiography') || lower.includes('životopis')) return 'Biografie a memoáry';
   if (lower.includes('poetry') || lower.includes('poezie')) return 'Poezie';
   if (lower.includes('drama') || lower.includes('divadlo')) return 'Drama';
   if (lower.includes('comics') || lower.includes('graphic novel') || lower.includes('komiks')) return 'Komiksy';
+  if (lower.includes('religion') || lower.includes('theology') || lower.includes('křesťan') || lower.includes('duchov')) return 'Duchovní literatura a křesťanství';
   if (lower.includes('philosophy') || lower.includes('filozofie')) return 'Filozofie';
   if (lower.includes('psychology') || lower.includes('psychologie')) return 'Psychologie a rozvoj';
   if (lower.includes('science') || lower.includes('věda') || lower.includes('nature')) return 'Naukova a odborná literatura';
@@ -137,7 +138,115 @@ export function inferAgeGroup(categories, title = '', description = '') {
   return 'Všeobecná veřejnost';
 }
 
-// Built-in offline backup catalog
+// Normalization helper for title matching (removes accents, punctuation, lowercase)
+export function normalizeTitleForMatch(text) {
+  if (!text) return '';
+  return String(text)
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+// Curated knowledge base for known Czech editions and popular classics
+// used to resolve missing author/year/publisher/genre when API lookups yield incomplete data
+export const TITLE_KNOWLEDGE_BASE = [
+  {
+    matches: ['rady zkuseneho dabla', 'zkuseneho dabla', 'the screwtape letters', 'screwtape letters'],
+    title: 'Rady zkušeného ďábla',
+    author: 'C. S. Lewis',
+    year: '2008',
+    publisher: 'Návrat domů',
+    genre: 'Křesťanská literatura / Alegorie',
+    ageGroup: 'Pro dospělé a mládež',
+    language: 'Čeština',
+    cover: 'https://covers.openlibrary.org/b/id/9779-L.jpg',
+  },
+  {
+    matches: ['zapisky o valce galske', 'valce galske', 'commentarii de bello gallico', 'de bello gallico'],
+    title: 'Zápisky o válce galské',
+    author: 'Gaius Iulius Caesar',
+    year: '2009',
+    publisher: 'Naše vojsko',
+    genre: 'Historická literatura / Antika',
+    ageGroup: 'Všeobecná veřejnost',
+    language: 'Čeština',
+    cover: 'https://covers.openlibrary.org/b/id/2891112-L.jpg',
+  },
+  {
+    matches: ['zranene srdce', 'the sacred romance', 'posvatna romance'],
+    title: 'Zraněné srdce',
+    author: 'John Eldredge',
+    year: '2007',
+    publisher: 'Návrat domů',
+    genre: 'Duchovní literatura a psychologie',
+    ageGroup: 'Pro dospělé',
+    language: 'Čeština',
+    cover: 'https://covers.openlibrary.org/b/id/6808063-L.jpg',
+  },
+  {
+    matches: ['harry potter a kamen mudrcu', 'harry potter and the philosopher s stone'],
+    title: 'Harry Potter a Kámen mudrců',
+    author: 'J. K. Rowlingová',
+    year: '2000',
+    publisher: 'Albatros',
+    genre: 'Fantasy / Pro děti a mládež',
+    ageGroup: 'Mládež (9-15 let)',
+    language: 'Čeština',
+    cover: 'https://www.obalkyknih.cz/api/cover?isbn=9788000058825',
+  },
+  {
+    matches: ['alchymista', 'the alchemist', 'o alquimista'],
+    title: 'Alchymista',
+    author: 'Paulo Coelho',
+    year: '2011',
+    publisher: 'Argo',
+    genre: 'Filozofický román',
+    ageGroup: 'Všeobecná veřejnost',
+    language: 'Čeština',
+    cover: 'https://www.obalkyknih.cz/api/cover?isbn=9788073819316',
+  },
+  {
+    matches: ['maly princ', 'the little prince', 'le petit prince'],
+    title: 'Malý princ',
+    author: 'Antoine de Saint-Exupéry',
+    year: '2021',
+    publisher: 'Albatros',
+    genre: 'Filozofická pohádka',
+    ageGroup: 'Všechny věkové kategorie',
+    language: 'Čeština',
+    cover: 'https://covers.openlibrary.org/b/id/10523395-L.jpg',
+  },
+  {
+    matches: ['1984', 'nineteen eighty four'],
+    title: '1984',
+    author: 'George Orwell',
+    year: '2020',
+    publisher: 'Mladá fronta',
+    genre: 'Dystopický román',
+    ageGroup: 'Pro dospělé',
+    language: 'Čeština',
+    cover: 'https://www.obalkyknih.cz/api/cover?isbn=9788020455826',
+  },
+];
+
+// Helper to find title metadata from the curated knowledge base
+export function findTitleInKnowledgeBase(title) {
+  if (!title) return null;
+  const normalized = normalizeTitleForMatch(title);
+  if (!normalized) return null;
+
+  for (const entry of TITLE_KNOWLEDGE_BASE) {
+    if (entry.matches.some((m) => normalized.includes(m) || m.includes(normalized))) {
+      return entry;
+    }
+  }
+  return null;
+}
+
+// Built-in offline backup catalog by ISBN
 export const OFFLINE_CATALOG = {
   '9788000058825': {
     title: 'Harry Potter a Kámen mudrců',
@@ -186,6 +295,78 @@ export const OFFLINE_CATALOG = {
     isbn: '978-80-20455-82-6',
     cover: 'https://www.obalkyknih.cz/api/cover?isbn=9788020455826',
     fallbackCover: 'https://covers.openlibrary.org/b/id/12645114-L.jpg',
+  },
+  '9788071953258': {
+    title: 'Rady zkušeného ďábla',
+    author: 'C. S. Lewis',
+    year: '2008',
+    publisher: 'Návrat domů',
+    genre: 'Křesťanská literatura / Alegorie',
+    ageGroup: 'Pro dospělé a mládež',
+    language: 'Čeština',
+    isbn: '978-80-7195-325-8',
+    cover: 'https://www.obalkyknih.cz/api/cover?isbn=9788071953258',
+    fallbackCover: 'https://covers.openlibrary.org/b/isbn/9788071953258-L.jpg',
+  },
+  '9788070219669': {
+    title: 'Rady zkušeného ďábla',
+    author: 'C. S. Lewis',
+    year: '2008',
+    publisher: 'Vyšehrad',
+    genre: 'Křesťanská literatura / Alegorie',
+    ageGroup: 'Pro dospělé a mládež',
+    language: 'Čeština',
+    isbn: '978-80-7021-966-9',
+    cover: 'https://www.obalkyknih.cz/api/cover?isbn=9788070219669',
+    fallbackCover: 'https://covers.openlibrary.org/b/isbn/9788070219669-L.jpg',
+  },
+  '9788086410401': {
+    title: 'Zápisky o válce galské',
+    author: 'Gaius Iulius Caesar',
+    year: '2009',
+    publisher: 'Naše vojsko',
+    genre: 'Historická literatura / Antika',
+    ageGroup: 'Všeobecná veřejnost',
+    language: 'Čeština',
+    isbn: '978-80-86410-40-1',
+    cover: 'https://www.obalkyknih.cz/api/cover?isbn=9788086410401',
+    fallbackCover: 'https://covers.openlibrary.org/b/isbn/9788086410401-L.jpg',
+  },
+  '9788020610507': {
+    title: 'Zápisky o válce galské',
+    author: 'Gaius Iulius Caesar',
+    year: '2009',
+    publisher: 'Naše vojsko',
+    genre: 'Historická literatura / Antika',
+    ageGroup: 'Všeobecná veřejnost',
+    language: 'Čeština',
+    isbn: '978-80-206-1050-7',
+    cover: 'https://www.obalkyknih.cz/api/cover?isbn=9788020610507',
+    fallbackCover: 'https://covers.openlibrary.org/b/isbn/9788020610507-L.jpg',
+  },
+  '9788072551521': {
+    title: 'Zraněné srdce',
+    author: 'John Eldredge',
+    year: '2007',
+    publisher: 'Návrat domů',
+    genre: 'Duchovní literatura a psychologie',
+    ageGroup: 'Pro dospělé',
+    language: 'Čeština',
+    isbn: '978-80-7255-152-1',
+    cover: 'https://www.obalkyknih.cz/api/cover?isbn=9788072551521',
+    fallbackCover: 'https://covers.openlibrary.org/b/isbn/9788072551521-L.jpg',
+  },
+  '9788087282052': {
+    title: 'Zraněné srdce',
+    author: 'John Eldredge',
+    year: '2010',
+    publisher: 'Návrat domů',
+    genre: 'Duchovní literatura a psychologie',
+    ageGroup: 'Pro dospělé',
+    language: 'Čeština',
+    isbn: '978-80-87282-05-2',
+    cover: 'https://www.obalkyknih.cz/api/cover?isbn=9788087282052',
+    fallbackCover: 'https://covers.openlibrary.org/b/isbn/9788087282052-L.jpg',
   },
   '9780141439518': {
     title: 'Pride and Prejudice',
@@ -308,18 +489,30 @@ export async function fetchGoogleBooksByQuery(title, author = '') {
   try {
     const cleanTitle = title.trim();
     const cleanAuthor = author && author !== 'Neznámý autor' ? author.trim() : '';
-    let q = `intitle:${encodeURIComponent(cleanTitle)}`;
+
+    // First attempt: with author if available
     if (cleanAuthor) {
-      q += `+inauthor:${encodeURIComponent(cleanAuthor)}`;
+      const q = `intitle:${encodeURIComponent(cleanTitle)}+inauthor:${encodeURIComponent(cleanAuthor)}`;
+      const response = await fetchWithTimeout(`https://www.googleapis.com/books/v1/volumes?q=${q}&maxResults=3`);
+      if (response.ok) {
+        const data = await response.json();
+        if (data.items && data.items.length > 0) {
+          return parseGoogleBooksItem(data.items[0]);
+        }
+      }
     }
-    const response = await fetchWithTimeout(`https://www.googleapis.com/books/v1/volumes?q=${q}&maxResults=3`);
-    if (response.ok) {
-      const data = await response.json();
+
+    // Second attempt: intitle query by clean title
+    const qTitle = `intitle:${encodeURIComponent(cleanTitle)}`;
+    const resTitle = await fetchWithTimeout(`https://www.googleapis.com/books/v1/volumes?q=${qTitle}&maxResults=3`);
+    if (resTitle.ok) {
+      const data = await resTitle.json();
       if (data.items && data.items.length > 0) {
         return parseGoogleBooksItem(data.items[0]);
       }
     }
-    // Fallback to broader text query
+
+    // Third attempt: broader text query
     const fallbackQ = encodeURIComponent(`${cleanTitle} ${cleanAuthor}`.trim());
     const res2 = await fetchWithTimeout(`https://www.googleapis.com/books/v1/volumes?q=${fallbackQ}&maxResults=3`);
     if (res2.ok) {
@@ -408,22 +601,45 @@ export async function fetchOpenLibraryByQuery(title, author = '') {
     }
     url += '&limit=3';
 
-    const response = await fetchWithTimeout(url);
-    if (!response.ok) return null;
-    const data = await response.json();
-    if (!data.docs || data.docs.length === 0) return null;
-    const doc = data.docs[0];
+    let response = await fetchWithTimeout(url);
+    if (response.ok) {
+      const data = await response.json();
+      if (data.docs && data.docs.length > 0) {
+        const doc = data.docs[0];
+        return {
+          title: toDisplayText(doc.title),
+          author: Array.isArray(doc.author_name) ? doc.author_name.map((item) => toDisplayText(item)).filter(Boolean).join(', ') : '',
+          year: toDisplayText(doc.first_publish_year),
+          publisher: Array.isArray(doc.publisher) ? toDisplayText(doc.publisher[0]) : toDisplayText(doc.publisher),
+          genre: translateGenre(doc.subject),
+          ageGroup: inferAgeGroup(doc.subject, doc.title),
+          language: doc.language ? (LANGUAGE_MAP[doc.language[0]] || doc.language[0]) : 'Čeština',
+          cover: doc.cover_i ? `https://covers.openlibrary.org/b/id/${doc.cover_i}-L.jpg` : null,
+        };
+      }
+    }
 
-    return {
-      title: toDisplayText(doc.title),
-      author: Array.isArray(doc.author_name) ? doc.author_name.map((item) => toDisplayText(item)).filter(Boolean).join(', ') : '',
-      year: toDisplayText(doc.first_publish_year),
-      publisher: Array.isArray(doc.publisher) ? toDisplayText(doc.publisher[0]) : toDisplayText(doc.publisher),
-      genre: translateGenre(doc.subject),
-      ageGroup: inferAgeGroup(doc.subject, doc.title),
-      language: doc.language ? (LANGUAGE_MAP[doc.language[0]] || doc.language[0]) : 'Čeština',
-      cover: doc.cover_i ? `https://covers.openlibrary.org/b/id/${doc.cover_i}-L.jpg` : null,
-    };
+    // Fallback: general q search with cleanTitle
+    const qUrl = `https://openlibrary.org/search.json?q=${encodeURIComponent(cleanTitle)}&limit=3`;
+    const qResponse = await fetchWithTimeout(qUrl);
+    if (qResponse.ok) {
+      const qData = await qResponse.json();
+      if (qData.docs && qData.docs.length > 0) {
+        const doc = qData.docs[0];
+        return {
+          title: toDisplayText(doc.title),
+          author: Array.isArray(doc.author_name) ? doc.author_name.map((item) => toDisplayText(item)).filter(Boolean).join(', ') : '',
+          year: toDisplayText(doc.first_publish_year),
+          publisher: Array.isArray(doc.publisher) ? toDisplayText(doc.publisher[0]) : toDisplayText(doc.publisher),
+          genre: translateGenre(doc.subject),
+          ageGroup: inferAgeGroup(doc.subject, doc.title),
+          language: doc.language ? (LANGUAGE_MAP[doc.language[0]] || doc.language[0]) : 'Čeština',
+          cover: doc.cover_i ? `https://covers.openlibrary.org/b/id/${doc.cover_i}-L.jpg` : null,
+        };
+      }
+    }
+
+    return null;
   } catch (e) {
     console.warn('Open Library title/author fetch error:', e);
     return null;
@@ -431,7 +647,7 @@ export async function fetchOpenLibraryByQuery(title, author = '') {
 }
 
 // Helper to check if a metadata field is missing or generic default
-function isFieldMissing(val, defaults = []) {
+export function isFieldMissing(val, defaults = []) {
   if (val == null) return true;
   const str = String(val).trim();
   if (!str) return true;
@@ -444,10 +660,10 @@ export function mergeBookMetadata(primary, supplement) {
   if (!primary) return supplement;
 
   return {
-    title: isFieldMissing(primary.title) ? (supplement.title || '') : primary.title,
+    title: isFieldMissing(primary.title, ['Neznámý název', '']) ? (supplement.title || primary.title) : primary.title,
     author: isFieldMissing(primary.author, ['Neznámý autor', '']) ? (supplement.author || primary.author) : primary.author,
-    year: isFieldMissing(primary.year, ['Neuvedeno', '']) ? (supplement.year || primary.year) : primary.year,
-    publisher: isFieldMissing(primary.publisher, ['Neuvedeno', '']) ? (supplement.publisher || primary.publisher) : primary.publisher,
+    year: isFieldMissing(primary.year, ['Neuvedeno', 'Rok vydání neuveden', '']) ? (supplement.year || primary.year) : primary.year,
+    publisher: isFieldMissing(primary.publisher, ['Neuvedeno', 'Nakladatelství neuvedeno', '']) ? (supplement.publisher || primary.publisher) : primary.publisher,
     genre: isFieldMissing(primary.genre, ['Všeobecná literatura', 'Beletrie', '']) ? (supplement.genre || primary.genre) : primary.genre,
     ageGroup: isFieldMissing(primary.ageGroup, ['Všeobecná veřejnost', '']) ? (supplement.ageGroup || primary.ageGroup) : primary.ageGroup,
     language: isFieldMissing(primary.language, ['Čeština', '']) ? (supplement.language || primary.language) : primary.language,
@@ -568,8 +784,9 @@ export async function fetchBookByIsbn(rawIsbn) {
     language: toDisplayText(knihovnyData?.language || gbData?.language || olData?.language, 'Čeština'),
   };
 
-  // Check if important details or covers are missing
+  // Phase 2: If we have a title (found now or partial), check if author or year or publisher or cover is missing
   const needsMoreData = !mergedMeta.title ||
+    mergedMeta.title === 'Neznámý název' ||
     mergedMeta.author === 'Neznámý autor' ||
     mergedMeta.year === 'Neuvedeno' ||
     mergedMeta.publisher === 'Neuvedeno';
@@ -577,8 +794,8 @@ export async function fetchBookByIsbn(rawIsbn) {
   let gbQueryData = null;
   let olQueryData = null;
 
-  // Phase 2: If we have a title (either found now or missing data), query by title & author
   if (mergedMeta.title && (needsMoreData || (!gbData?.cover && !olData?.cover))) {
+    // 2a. Query Google Books & Open Library by title and author
     const [gbQResult, olQResult] = await Promise.allSettled([
       fetchGoogleBooksByQuery(mergedMeta.title, mergedMeta.author),
       fetchOpenLibraryByQuery(mergedMeta.title, mergedMeta.author),
@@ -592,10 +809,19 @@ export async function fetchBookByIsbn(rawIsbn) {
     if (olQueryData) {
       mergedMeta = mergeBookMetadata(mergedMeta, olQueryData);
     }
+
+    // 2b. If author or key fields are still missing, check title knowledge base (e.g. Lewis, Caesar, Eldredge)
+    const stillNeedsData = mergedMeta.author === 'Neznámý autor' || mergedMeta.year === 'Neuvedeno' || mergedMeta.publisher === 'Neuvedeno';
+    if (stillNeedsData) {
+      const kbMatch = findTitleInKnowledgeBase(mergedMeta.title);
+      if (kbMatch) {
+        mergedMeta = mergeBookMetadata(mergedMeta, kbMatch);
+      }
+    }
   }
 
   // If still no title and no data found from any source, return null
-  if (!hasIsbnData && !gbQueryData && !olQueryData) {
+  if (!hasIsbnData && !gbQueryData && !olQueryData && (!mergedMeta.title || mergedMeta.title === 'Neznámý název')) {
     return null;
   }
 
@@ -608,6 +834,7 @@ export async function fetchBookByIsbn(rawIsbn) {
   // 3) Open Library by ISBN
   // 4) Google Books by title & author
   // 5) Open Library by title & author
+  const kbCover = findTitleInKnowledgeBase(mergedMeta.title)?.cover;
   const coverCandidates = assembleCoverCandidates({
     cleanIsbn,
     obalkyCover,
@@ -615,6 +842,7 @@ export async function fetchBookByIsbn(rawIsbn) {
     olIsbnCover: olData?.cover,
     gbQueryCover: gbQueryData?.cover,
     olQueryCover: olQueryData?.cover,
+    extraFallbacks: kbCover ? [kbCover] : [],
   });
 
   return {
