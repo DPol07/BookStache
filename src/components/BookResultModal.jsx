@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { X, BookmarkPlus, RotateCcw, Book, Calendar, Building2, Tag, Users, Globe, Hash, AlertTriangle, RefreshCw, CheckCircle2 } from 'lucide-react';
+import { X, BookmarkPlus, RotateCcw, Book, Calendar, Building2, Tag, Users, Globe, Hash, AlertTriangle, RefreshCw, CheckCircle2, BookmarkCheck, ExternalLink } from 'lucide-react';
 
 export default function BookResultModal({
   isOpen,
   isLoading,
   book,
+  existingDuplicate = null,
+  onOpenExistingBook,
   onClose,
   onSaveBook,
   onRetryScan,
@@ -106,6 +108,8 @@ export default function BookResultModal({
     onSaveBook(book);
   };
 
+  const isDuplicate = !!existingDuplicate;
+
   return (
     <div style={{ backgroundColor: '#FAF6F0' }} className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 animate-fadeIn overflow-y-auto">
       <div style={{ backgroundColor: '#FFFDF9', borderColor: '#E6D7C3' }} className="relative w-full max-w-md my-auto border rounded-3xl overflow-hidden flex flex-col max-h-[90vh]">
@@ -120,9 +124,32 @@ export default function BookResultModal({
         </button>
 
         {/* Modal Scrollable Content */}
-        <div style={{ color: '#3D2314' }} className="overflow-y-auto p-5 space-y-5">
+        <div style={{ color: '#3D2314' }} className="overflow-y-auto p-5 space-y-4">
+          {/* Duplicate Notice Banner */}
+          {isDuplicate && (
+            <div
+              style={{ backgroundColor: '#F2E8D8', borderColor: '#8C593B', color: '#3D2314' }}
+              className="p-3.5 rounded-2xl border flex items-center gap-3 text-left"
+            >
+              <div
+                style={{ backgroundColor: '#4A2E1B', color: '#FAF6F0' }}
+                className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0"
+              >
+                <BookmarkCheck className="w-5 h-5" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-bold font-serif leading-snug">
+                  Tato kniha již je ve vaší knihovně
+                </p>
+                <p style={{ color: '#5C3A24' }} className="text-[11px] leading-tight mt-0.5">
+                  Knihu nelze přidat vícekrát. Můžete si otevřít existující záznam.
+                </p>
+              </div>
+            </div>
+          )}
+
           {/* Cover & Hero Section */}
-          <div className="flex flex-col sm:flex-row gap-4 items-center sm:items-start text-center sm:text-left pt-2">
+          <div className="flex flex-col sm:flex-row gap-4 items-center sm:items-start text-center sm:text-left pt-1">
             {/* Book Cover / Placeholder */}
             <div style={{ backgroundColor: '#F2E8D8', borderColor: '#8C593B' }} className="relative w-28 h-40 shrink-0 rounded-xl overflow-hidden border flex items-center justify-center">
               {currentCoverUrl && !imageError ? (
@@ -151,7 +178,7 @@ export default function BookResultModal({
             {/* Title & Author Header */}
             <div className="space-y-1.5 flex-1">
               <span style={{ backgroundColor: '#F2E8D8', color: '#3D2314', borderColor: '#8C593B' }} className="inline-block px-2.5 py-0.5 border text-[11px] font-bold rounded-full uppercase tracking-wider font-serif">
-                Naskenovaná kniha
+                {isDuplicate ? 'Kniha v knihovně' : 'Naskenovaná kniha'}
               </span>
               <h2 style={{ color: '#3D2314' }} className="text-xl font-extrabold font-serif leading-tight">
                 {book.title}
@@ -237,30 +264,44 @@ export default function BookResultModal({
             style={{ backgroundColor: '#FAF6F0', borderColor: '#8C593B', color: '#3D2314' }}
             className="flex-1 py-3.5 px-4 font-bold text-xs rounded-2xl border text-center cursor-pointer"
           >
-            Zrušit
+            Zavřít
           </button>
 
-          <button
-            onClick={handleSave}
-            disabled={isSaved}
-            style={{
-              backgroundColor: isSaved ? '#15803D' : '#4A2E1B',
-              color: '#FAF6F0'
-            }}
-            className="flex-1 py-3.5 px-4 font-extrabold text-xs rounded-2xl flex items-center justify-center gap-2 uppercase tracking-wider font-serif cursor-pointer"
-          >
-            {isSaved ? (
-              <>
-                <CheckCircle2 className="w-4 h-4" />
-                Uloženo!
-              </>
-            ) : (
-              <>
-                <BookmarkPlus className="w-4 h-4" />
-                Uložit knihu
-              </>
-            )}
-          </button>
+          {isDuplicate ? (
+            <button
+              onClick={() => onOpenExistingBook(existingDuplicate)}
+              style={{
+                backgroundColor: '#4A2E1B',
+                color: '#FAF6F0',
+              }}
+              className="flex-1 py-3.5 px-4 font-extrabold text-xs rounded-2xl flex items-center justify-center gap-2 uppercase tracking-wider font-serif cursor-pointer"
+            >
+              <ExternalLink className="w-4 h-4" />
+              Otevřít v knihovně
+            </button>
+          ) : (
+            <button
+              onClick={handleSave}
+              disabled={isSaved}
+              style={{
+                backgroundColor: isSaved ? '#15803D' : '#4A2E1B',
+                color: '#FAF6F0'
+              }}
+              className="flex-1 py-3.5 px-4 font-extrabold text-xs rounded-2xl flex items-center justify-center gap-2 uppercase tracking-wider font-serif cursor-pointer"
+            >
+              {isSaved ? (
+                <>
+                  <CheckCircle2 className="w-4 h-4" />
+                  Uloženo!
+                </>
+              ) : (
+                <>
+                  <BookmarkPlus className="w-4 h-4" />
+                  Uložit knihu
+                </>
+              )}
+            </button>
+          )}
         </div>
       </div>
     </div>
