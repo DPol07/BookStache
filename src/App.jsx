@@ -7,8 +7,8 @@ import BookResultModal from './components/BookResultModal';
 import LibraryModal from './components/LibraryModal';
 import BookDetailModal from './components/BookDetailModal';
 
-import { fetchBookByIsbn, normalizeIsbn, formatIsbnDisplay } from './services/bookApi';
-import { getSavedBooks, saveBook, deleteBook } from './services/storage';
+import { fetchBookByIsbn } from './services/bookApi';
+import { getSavedBooks, saveBook, deleteBook, findDuplicateBook } from './services/storage';
 
 export default function App() {
   const [libraryBooks, setLibraryBooks] = useState([]);
@@ -43,6 +43,11 @@ export default function App() {
     }
   };
 
+  // Check if current scanned book is already in the library
+  const duplicateExistingBook = scannedBookResult?.book
+    ? findDuplicateBook(scannedBookResult.book, libraryBooks)
+    : null;
+
   // Save book and return to main screen
   const handleSaveBook = (bookToSave) => {
     if (!bookToSave) return;
@@ -53,6 +58,12 @@ export default function App() {
     setTimeout(() => {
       setScannedBookResult(null);
     }, 300);
+  };
+
+  // Open existing book detail from duplicate detection notice
+  const handleOpenExistingBook = (existingBook) => {
+    setScannedBookResult(null);
+    setSelectedBookForDetail(existingBook);
   };
 
   // Delete book from library
@@ -107,6 +118,8 @@ export default function App() {
         isOpen={isLoadingBook || (scannedBookResult && scannedBookResult.searched)}
         isLoading={isLoadingBook}
         book={scannedBookResult?.book || null}
+        existingDuplicate={duplicateExistingBook}
+        onOpenExistingBook={handleOpenExistingBook}
         onClose={() => setScannedBookResult(null)}
         onSaveBook={handleSaveBook}
         onRetryScan={() => {
