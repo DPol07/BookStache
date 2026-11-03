@@ -44,6 +44,14 @@ html, body, #root {
   padding-right: env(safe-area-inset-right, 0px);
 }
 
+/* Hide default html5-qrcode shaded region overlay and white corner markers */
+#interactive-barcode-reader #qr-shaded-region,
+#qr-shaded-region {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+}
+
 /* Force light color scheme and disable media dark overrides on all devices */
 @media (prefers-color-scheme: dark) {
   :root {
