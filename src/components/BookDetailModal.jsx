@@ -33,32 +33,9 @@ export default function BookDetailModal({ isOpen, book, onClose, onDeleteBook })
             {/* Book Cover / Placeholder */}
             <BookCover
               book={book}
-              containerStyle={{ backgroundColor: '#EAE1D3', borderColor: '#D97706' }}
-              placeholderStyle={{ backgroundColor: '#EAE1D3', color: '#3D2314' }}
+              containerStyle={{ backgroundColor: '#F2E8D8', borderColor: '#8C593B' }}
+              placeholderStyle={{ backgroundColor: '#F2E8D8', color: '#3D2314' }}
             />
-            <div style={{ backgroundColor: '#F2E8D8', borderColor: '#8C593B' }} className="relative w-28 h-40 shrink-0 rounded-xl overflow-hidden border flex items-center justify-center">
-              {currentCoverUrl && !imageError ? (
-                <img
-                  src={currentCoverUrl}
-                  alt={book.title}
-                  onError={handleImageError}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div style={{ backgroundColor: '#F2E8D8', color: '#3D2314' }} className="flex flex-col items-center justify-between p-3 text-center w-full h-full">
-                  <div style={{ backgroundColor: '#4A2E1B', color: '#FAF6F0' }} className="p-1.5 rounded-full mt-2">
-                    <Book className="w-6 h-6" />
-                  </div>
-                  <div className="space-y-1 my-auto">
-                    <span className="text-[10px] font-bold leading-snug line-clamp-3 block px-1 font-serif">{book.title}</span>
-                    <span style={{ color: '#5C3A24' }} className="text-[9px] truncate max-w-full block px-1">{book.author}</span>
-                  </div>
-                  <span style={{ color: '#8C593B', borderColor: '#E6D7C3' }} className="text-[8px] font-mono border-t pt-1 w-full truncate">
-                    {book.isbn}
-                  </span>
-                </div>
-              )}
-            </div>
 
             {/* Title & Author Header */}
             <div className="space-y-1.5 flex-1">

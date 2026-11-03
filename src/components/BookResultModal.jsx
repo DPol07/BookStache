@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { X, BookmarkPlus, RotateCcw, Book, Calendar, Building2, Tag, Users, Globe, Hash, AlertTriangle, RefreshCw, CheckCircle2 } from 'lucide-react';
-import BookCover from './BookCover.jsx';
 import { X, BookmarkPlus, RotateCcw, Book, Calendar, Building2, Tag, Users, Globe, Hash, AlertTriangle, RefreshCw, CheckCircle2, BookmarkCheck, ExternalLink } from 'lucide-react';
+import BookCover from './BookCover.jsx';
 
 export default function BookResultModal({
   isOpen,
