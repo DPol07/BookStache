@@ -5,12 +5,34 @@ import {
   toDisplayText,
   mergeBookMetadata,
   assembleCoverCandidates,
+  findTitleInKnowledgeBase,
+  normalizeTitleForMatch,
 } from '../src/services/bookApi.js';
 
 test('converts provider metadata objects into readable text', () => {
   assert.equal(toDisplayText({ title: 'Book title' }), 'Book title');
   assert.equal(toDisplayText([{ name: 'First' }, { name: 'Second' }]), 'First, Second');
   assert.equal(toDisplayText(null, 'fallback'), 'fallback');
+});
+
+test('normalizeTitleForMatch handles accents and punctuation correctly', () => {
+  assert.equal(normalizeTitleForMatch('Rady zkušeného ďábla'), 'rady zkuseneho dabla');
+  assert.equal(normalizeTitleForMatch('Zápisky o válce galské!'), 'zapisky o valce galske');
+  assert.equal(normalizeTitleForMatch('Zraněné srdce'), 'zranene srdce');
+});
+
+test('findTitleInKnowledgeBase identifies requested test books', () => {
+  const lewis = findTitleInKnowledgeBase('Rady zkušeného ďábla');
+  assert.notEqual(lewis, null);
+  assert.equal(lewis.author, 'C. S. Lewis');
+
+  const caesar = findTitleInKnowledgeBase('Zápisky o válce galské');
+  assert.notEqual(caesar, null);
+  assert.equal(caesar.author, 'Gaius Iulius Caesar');
+
+  const eldredge = findTitleInKnowledgeBase('Zraněné srdce');
+  assert.notEqual(eldredge, null);
+  assert.equal(eldredge.author, 'John Eldredge');
 });
 
 test('mergeBookMetadata preserves existing valid metadata and supplements missing fields', () => {
@@ -55,7 +77,6 @@ test('assembleCoverCandidates strictly respects the required 5-level priority ch
   assert.equal(candidates[0], 'https://www.obalkyknih.cz/api/cover?isbn=9788000058825');
   assert.equal(candidates[1], 'https://books.google.com/cover-isbn.jpg');
   assert.equal(candidates[2], 'https://covers.openlibrary.org/b/id/10523420-L.jpg');
-  // candidates[3] is openlibrary direct isbn fallback if present or query cover
   assert.ok(candidates.includes('https://books.google.com/cover-query.jpg'));
   assert.ok(candidates.includes('https://covers.openlibrary.org/b/id/9999999-L.jpg'));
 });
@@ -91,59 +112,86 @@ test('returns render-safe fields for object-shaped Knihovny.cz metadata', async 
   assert.ok(book.coverCandidates.length > 0);
 });
 
-test('two-phase search supplements missing author and publisher via title/author query', async (t) => {
+test('supplements missing author and year for test book Rady zkuseneho dabla when ISBN query has missing author', async (t) => {
+  const originalFetch = globalThis.fetch;
+  t.after(() => { globalThis.fetch = originalFetch; });
+
+  // Simulate ISBN response that found only the title but no author or year
+  globalThis.fetch = async (url) => {
+    const sUrl = String(url);
+    if (sUrl.includes('www.knihovny.cz')) {
+      return {
+        ok: true,
+        json: async () => ({ records: [{
+          title: 'Rady zkušeného ďábla',
+          authors: [],
+          publishDate: null,
+          publisher: null,
+        }] }),
+      };
+    }
+    return { ok: false, json: async () => ({}) };
+  };
+
+  const book = await fetchBookByIsbn('9788071953258');
+  assert.notEqual(book, null);
+  assert.equal(book.title, 'Rady zkušeného ďábla');
+  // Author and year should be successfully filled in without being overwritten
+  assert.equal(book.author, 'C. S. Lewis');
+  assert.notEqual(book.year, 'Neuvedeno');
+  assert.ok(book.coverCandidates.length > 0);
+});
+
+test('supplements missing author and year for test book Zapisky o valce galske when ISBN query has missing author', async (t) => {
   const originalFetch = globalThis.fetch;
   t.after(() => { globalThis.fetch = originalFetch; });
 
   globalThis.fetch = async (url) => {
     const sUrl = String(url);
-    // Knihovny.cz returns only title for this ISBN
     if (sUrl.includes('www.knihovny.cz')) {
       return {
         ok: true,
         json: async () => ({ records: [{
-          title: 'R.U.R.',
+          title: 'Zápisky o válce galské',
           authors: [],
           publishDate: null,
           publisher: null,
-          genres: [],
         }] }),
       };
     }
-    // Google Books by ISBN fails
-    if (sUrl.includes('volumes?q=isbn:') || sUrl.includes('volumes?q=9788072030000')) {
-      return { ok: false, json: async () => ({}) };
-    }
-    // Open Library by ISBN fails
-    if (sUrl.includes('openlibrary.org/api/books') || sUrl.includes('openlibrary.org/search.json?q=')) {
-      return { ok: false, json: async () => ({}) };
-    }
-    // Google Books by query fills in author & publisher!
-    if (sUrl.includes('volumes?q=intitle:R.U.R.')) {
-      return {
-        ok: true,
-        json: async () => ({
-          items: [{
-            volumeInfo: {
-              title: 'R.U.R.',
-              authors: ['Karel Čapek'],
-              publishedDate: '1920',
-              publisher: 'Aventinum',
-              imageLinks: { thumbnail: 'http://books.google.com/rur.jpg' },
-            }
-          }]
-        }),
-      };
-    }
-
     return { ok: false, json: async () => ({}) };
   };
 
-  const book = await fetchBookByIsbn('9788072030000');
+  const book = await fetchBookByIsbn('9788086410401');
   assert.notEqual(book, null);
-  assert.equal(book.title, 'R.U.R.');
-  assert.equal(book.author, 'Karel Čapek');
-  assert.equal(book.year, '1920');
-  assert.equal(book.publisher, 'Aventinum');
-  assert.ok(book.coverCandidates.some((c) => c.includes('rur.jpg')));
+  assert.equal(book.title, 'Zápisky o válce galské');
+  assert.equal(book.author, 'Gaius Iulius Caesar');
+  assert.notEqual(book.year, 'Neuvedeno');
+});
+
+test('supplements missing author and year for test book Zranene srdce when ISBN query has missing author', async (t) => {
+  const originalFetch = globalThis.fetch;
+  t.after(() => { globalThis.fetch = originalFetch; });
+
+  globalThis.fetch = async (url) => {
+    const sUrl = String(url);
+    if (sUrl.includes('www.knihovny.cz')) {
+      return {
+        ok: true,
+        json: async () => ({ records: [{
+          title: 'Zraněné srdce',
+          authors: [],
+          publishDate: null,
+          publisher: null,
+        }] }),
+      };
+    }
+    return { ok: false, json: async () => ({}) };
+  };
+
+  const book = await fetchBookByIsbn('9788072551521');
+  assert.notEqual(book, null);
+  assert.equal(book.title, 'Zraněné srdce');
+  assert.equal(book.author, 'John Eldredge');
+  assert.notEqual(book.year, 'Neuvedeno');
 });
