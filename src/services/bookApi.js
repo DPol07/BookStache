@@ -432,7 +432,7 @@ export async function fetchKnihovnyCz(cleanIsbn) {
 }
 
 // Helper to extract Google Books volume data
-function parseGoogleBooksItem(item) {
+export function parseGoogleBooksItem(item) {
   if (!item || !item.volumeInfo) return null;
   const info = item.volumeInfo;
   const year = info.publishedDate ? info.publishedDate.slice(0, 4) : '';
@@ -458,6 +458,59 @@ function parseGoogleBooksItem(item) {
   };
 }
 
+// Select the best candidate from multiple Google Books volume items
+export function selectBestGoogleBooksCandidate(items, targetTitle = '', targetAuthor = '') {
+  if (!Array.isArray(items) || items.length === 0) return null;
+
+  const parsedCandidates = items.map(parseGoogleBooksItem).filter(Boolean);
+  if (parsedCandidates.length === 0) return null;
+
+  const normTargetTitle = normalizeTitleForMatch(targetTitle);
+  const normTargetAuthor = normalizeTitleForMatch(targetAuthor);
+
+  // Score candidates to pick the one that matches title/author best and has cover/details
+  let bestCandidate = null;
+  let bestScore = -1;
+
+  for (const candidate of parsedCandidates) {
+    let score = 0;
+    const cTitleNorm = normalizeTitleForMatch(candidate.title);
+    const cAuthorNorm = normalizeTitleForMatch(candidate.author);
+
+    if (normTargetTitle && cTitleNorm) {
+      if (cTitleNorm === normTargetTitle) score += 20;
+      else if (cTitleNorm.includes(normTargetTitle) || normTargetTitle.includes(cTitleNorm)) score += 10;
+    }
+    if (normTargetAuthor && cAuthorNorm) {
+      if (cAuthorNorm === normTargetAuthor) score += 15;
+      else if (cAuthorNorm.includes(normTargetAuthor) || normTargetAuthor.includes(cAuthorNorm)) score += 8;
+    }
+
+    if (candidate.cover) score += 5;
+    if (candidate.author && candidate.author !== 'Neznámý autor') score += 4;
+    if (candidate.year && candidate.year !== 'Neuvedeno') score += 2;
+    if (candidate.publisher && candidate.publisher !== 'Neuvedeno') score += 2;
+
+    if (score > bestScore) {
+      bestScore = score;
+      bestCandidate = candidate;
+    }
+  }
+
+  // Also collect all unique covers found across top candidates
+  const allCovers = [];
+  for (const c of parsedCandidates) {
+    if (c.cover && !allCovers.includes(c.cover)) {
+      allCovers.push(c.cover);
+    }
+  }
+
+  return {
+    ...bestCandidate,
+    additionalCovers: allCovers,
+  };
+}
+
 // Fetch book details from Google Books by ISBN
 export async function fetchGoogleBooks(cleanIsbn) {
   try {
@@ -465,7 +518,7 @@ export async function fetchGoogleBooks(cleanIsbn) {
     if (response.ok) {
       const data = await response.json();
       if (data.items && data.items.length > 0) {
-        return parseGoogleBooksItem(data.items[0]);
+        return selectBestGoogleBooksCandidate(data.items);
       }
     }
     // Fallback search query by raw ISBN query
@@ -473,7 +526,7 @@ export async function fetchGoogleBooks(cleanIsbn) {
     if (res2.ok) {
       const data2 = await res2.json();
       if (data2.items && data2.items.length > 0) {
-        return parseGoogleBooksItem(data2.items[0]);
+        return selectBestGoogleBooksCandidate(data2.items);
       }
     }
     return null;
@@ -483,7 +536,7 @@ export async function fetchGoogleBooks(cleanIsbn) {
   }
 }
 
-// Fetch book details from Google Books by Title and Author
+// Fetch book details from Google Books by Title and Author, evaluating multiple results
 export async function fetchGoogleBooksByQuery(title, author = '') {
   if (!title) return null;
   try {
@@ -493,32 +546,32 @@ export async function fetchGoogleBooksByQuery(title, author = '') {
     // First attempt: with author if available
     if (cleanAuthor) {
       const q = `intitle:${encodeURIComponent(cleanTitle)}+inauthor:${encodeURIComponent(cleanAuthor)}`;
-      const response = await fetchWithTimeout(`https://www.googleapis.com/books/v1/volumes?q=${q}&maxResults=3`);
+      const response = await fetchWithTimeout(`https://www.googleapis.com/books/v1/volumes?q=${q}&maxResults=5`);
       if (response.ok) {
         const data = await response.json();
         if (data.items && data.items.length > 0) {
-          return parseGoogleBooksItem(data.items[0]);
+          return selectBestGoogleBooksCandidate(data.items, cleanTitle, cleanAuthor);
         }
       }
     }
 
     // Second attempt: intitle query by clean title
     const qTitle = `intitle:${encodeURIComponent(cleanTitle)}`;
-    const resTitle = await fetchWithTimeout(`https://www.googleapis.com/books/v1/volumes?q=${qTitle}&maxResults=3`);
+    const resTitle = await fetchWithTimeout(`https://www.googleapis.com/books/v1/volumes?q=${qTitle}&maxResults=5`);
     if (resTitle.ok) {
       const data = await resTitle.json();
       if (data.items && data.items.length > 0) {
-        return parseGoogleBooksItem(data.items[0]);
+        return selectBestGoogleBooksCandidate(data.items, cleanTitle, cleanAuthor);
       }
     }
 
     // Third attempt: broader text query
     const fallbackQ = encodeURIComponent(`${cleanTitle} ${cleanAuthor}`.trim());
-    const res2 = await fetchWithTimeout(`https://www.googleapis.com/books/v1/volumes?q=${fallbackQ}&maxResults=3`);
+    const res2 = await fetchWithTimeout(`https://www.googleapis.com/books/v1/volumes?q=${fallbackQ}&maxResults=5`);
     if (res2.ok) {
       const data2 = await res2.json();
       if (data2.items && data2.items.length > 0) {
-        return parseGoogleBooksItem(data2.items[0]);
+        return selectBestGoogleBooksCandidate(data2.items, cleanTitle, cleanAuthor);
       }
     }
     return null;
@@ -589,7 +642,73 @@ export async function fetchOpenLibrary(cleanIsbn) {
   }
 }
 
-// Fetch book details from Open Library by Title and Author
+// Helper to parse single Open Library doc item
+export function parseOpenLibraryDoc(doc) {
+  if (!doc) return null;
+  return {
+    title: toDisplayText(doc.title),
+    author: Array.isArray(doc.author_name) ? doc.author_name.map((item) => toDisplayText(item)).filter(Boolean).join(', ') : '',
+    year: toDisplayText(doc.first_publish_year),
+    publisher: Array.isArray(doc.publisher) ? toDisplayText(doc.publisher[0]) : toDisplayText(doc.publisher),
+    genre: translateGenre(doc.subject),
+    ageGroup: inferAgeGroup(doc.subject, doc.title),
+    language: doc.language ? (LANGUAGE_MAP[doc.language[0]] || doc.language[0]) : 'Čeština',
+    cover: doc.cover_i ? `https://covers.openlibrary.org/b/id/${doc.cover_i}-L.jpg` : null,
+  };
+}
+
+// Select best candidate from multiple Open Library doc items
+export function selectBestOpenLibraryCandidate(docs, targetTitle = '', targetAuthor = '') {
+  if (!Array.isArray(docs) || docs.length === 0) return null;
+
+  const parsedCandidates = docs.map(parseOpenLibraryDoc).filter(Boolean);
+  if (parsedCandidates.length === 0) return null;
+
+  const normTargetTitle = normalizeTitleForMatch(targetTitle);
+  const normTargetAuthor = normalizeTitleForMatch(targetAuthor);
+
+  let bestCandidate = null;
+  let bestScore = -1;
+
+  for (const candidate of parsedCandidates) {
+    let score = 0;
+    const cTitleNorm = normalizeTitleForMatch(candidate.title);
+    const cAuthorNorm = normalizeTitleForMatch(candidate.author);
+
+    if (normTargetTitle && cTitleNorm) {
+      if (cTitleNorm === normTargetTitle) score += 20;
+      else if (cTitleNorm.includes(normTargetTitle) || normTargetTitle.includes(cTitleNorm)) score += 10;
+    }
+    if (normTargetAuthor && cAuthorNorm) {
+      if (cAuthorNorm === normTargetAuthor) score += 15;
+      else if (cAuthorNorm.includes(normTargetAuthor) || normTargetAuthor.includes(cAuthorNorm)) score += 8;
+    }
+
+    if (candidate.cover) score += 5;
+    if (candidate.author && candidate.author !== 'Neznámý autor') score += 4;
+    if (candidate.year && candidate.year !== 'Neuvedeno') score += 2;
+    if (candidate.publisher && candidate.publisher !== 'Neuvedeno') score += 2;
+
+    if (score > bestScore) {
+      bestScore = score;
+      bestCandidate = candidate;
+    }
+  }
+
+  const allCovers = [];
+  for (const c of parsedCandidates) {
+    if (c.cover && !allCovers.includes(c.cover)) {
+      allCovers.push(c.cover);
+    }
+  }
+
+  return {
+    ...bestCandidate,
+    additionalCovers: allCovers,
+  };
+}
+
+// Fetch book details from Open Library by Title and Author, evaluating multiple results
 export async function fetchOpenLibraryByQuery(title, author = '') {
   if (!title) return null;
   try {
@@ -599,43 +718,23 @@ export async function fetchOpenLibraryByQuery(title, author = '') {
     if (cleanAuthor) {
       url += `&author=${encodeURIComponent(cleanAuthor)}`;
     }
-    url += '&limit=3';
+    url += '&limit=5';
 
     let response = await fetchWithTimeout(url);
     if (response.ok) {
       const data = await response.json();
       if (data.docs && data.docs.length > 0) {
-        const doc = data.docs[0];
-        return {
-          title: toDisplayText(doc.title),
-          author: Array.isArray(doc.author_name) ? doc.author_name.map((item) => toDisplayText(item)).filter(Boolean).join(', ') : '',
-          year: toDisplayText(doc.first_publish_year),
-          publisher: Array.isArray(doc.publisher) ? toDisplayText(doc.publisher[0]) : toDisplayText(doc.publisher),
-          genre: translateGenre(doc.subject),
-          ageGroup: inferAgeGroup(doc.subject, doc.title),
-          language: doc.language ? (LANGUAGE_MAP[doc.language[0]] || doc.language[0]) : 'Čeština',
-          cover: doc.cover_i ? `https://covers.openlibrary.org/b/id/${doc.cover_i}-L.jpg` : null,
-        };
+        return selectBestOpenLibraryCandidate(data.docs, cleanTitle, cleanAuthor);
       }
     }
 
     // Fallback: general q search with cleanTitle
-    const qUrl = `https://openlibrary.org/search.json?q=${encodeURIComponent(cleanTitle)}&limit=3`;
+    const qUrl = `https://openlibrary.org/search.json?q=${encodeURIComponent(cleanTitle)}&limit=5`;
     const qResponse = await fetchWithTimeout(qUrl);
     if (qResponse.ok) {
       const qData = await qResponse.json();
       if (qData.docs && qData.docs.length > 0) {
-        const doc = qData.docs[0];
-        return {
-          title: toDisplayText(doc.title),
-          author: Array.isArray(doc.author_name) ? doc.author_name.map((item) => toDisplayText(item)).filter(Boolean).join(', ') : '',
-          year: toDisplayText(doc.first_publish_year),
-          publisher: Array.isArray(doc.publisher) ? toDisplayText(doc.publisher[0]) : toDisplayText(doc.publisher),
-          genre: translateGenre(doc.subject),
-          ageGroup: inferAgeGroup(doc.subject, doc.title),
-          language: doc.language ? (LANGUAGE_MAP[doc.language[0]] || doc.language[0]) : 'Čeština',
-          cover: doc.cover_i ? `https://covers.openlibrary.org/b/id/${doc.cover_i}-L.jpg` : null,
-        };
+        return selectBestOpenLibraryCandidate(qData.docs, cleanTitle, cleanAuthor);
       }
     }
 
@@ -835,6 +934,11 @@ export async function fetchBookByIsbn(rawIsbn) {
   // 4) Google Books by title & author
   // 5) Open Library by title & author
   const kbCover = findTitleInKnowledgeBase(mergedMeta.title)?.cover;
+  const extraFallbacks = [];
+  if (kbCover) extraFallbacks.push(kbCover);
+  if (gbQueryData?.additionalCovers) extraFallbacks.push(...gbQueryData.additionalCovers);
+  if (olQueryData?.additionalCovers) extraFallbacks.push(...olQueryData.additionalCovers);
+
   const coverCandidates = assembleCoverCandidates({
     cleanIsbn,
     obalkyCover,
@@ -842,7 +946,7 @@ export async function fetchBookByIsbn(rawIsbn) {
     olIsbnCover: olData?.cover,
     gbQueryCover: gbQueryData?.cover,
     olQueryCover: olQueryData?.cover,
-    extraFallbacks: kbCover ? [kbCover] : [],
+    extraFallbacks,
   });
 
   return {

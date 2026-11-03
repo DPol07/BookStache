@@ -8,7 +8,7 @@ import LibraryModal from './components/LibraryModal';
 import BookDetailModal from './components/BookDetailModal';
 
 import { fetchBookByIsbn } from './services/bookApi';
-import { getSavedBooks, saveBook, deleteBook, findDuplicateBook } from './services/storage';
+import { getSavedBooks, saveBook, deleteBook, findDuplicateBook, refreshSavedBooks } from './services/storage';
 
 export default function App() {
   const [libraryBooks, setLibraryBooks] = useState([]);
@@ -20,10 +20,15 @@ export default function App() {
   const [scannedBookResult, setScannedBookResult] = useState(null); // { book, searched: bool }
   const [selectedBookForDetail, setSelectedBookForDetail] = useState(null);
 
-  // Load saved books from localStorage on mount
+  // Load saved books from localStorage on mount and automatically refresh missing metadata
   useEffect(() => {
     const saved = getSavedBooks();
     setLibraryBooks(saved);
+
+    // Asynchronously refresh books with missing info in background
+    refreshSavedBooks((refreshedBooks) => {
+      setLibraryBooks(refreshedBooks);
+    });
   }, []);
 
   // Handle ISBN search (from scanner or manual entry)

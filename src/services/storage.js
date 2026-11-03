@@ -1,4 +1,4 @@
-import { normalizeIsbn } from './bookApi.js';
+import { normalizeIsbn, fetchBookByIsbn, mergeBookMetadata, isFieldMissing } from './bookApi.js';
 
 const STORAGE_KEY = 'bookstache_library_v1';
 
@@ -183,4 +183,113 @@ export function searchBooks(query) {
     (b.isbn && normalizeIsbn(b.isbn).includes(q)) ||
     (b.genre && normalizeText(b.genre).includes(q))
   );
+}
+
+/**
+ * Check whether a stored book has any missing metadata or missing cover candidates
+ */
+export function doesBookNeedEnrichment(book) {
+  if (!book) return false;
+  const hasMissingAuthor = isFieldMissing(book.author, ['Neznámý autor', '']);
+  const hasMissingYear = isFieldMissing(book.year, ['Neuvedeno', 'Rok vydání neuveden', '']);
+  const hasMissingPublisher = isFieldMissing(book.publisher, ['Neuvedeno', 'Nakladatelství neuvedeno', '']);
+  const hasMissingGenre = isFieldMissing(book.genre, ['Všeobecná literatura', 'Beletrie', '']);
+  const hasMissingCover = !book.cover;
+  const hasMissingCoverCandidates = !Array.isArray(book.coverCandidates) || book.coverCandidates.length === 0;
+
+  return hasMissingAuthor || hasMissingYear || hasMissingPublisher || hasMissingGenre || hasMissingCover || hasMissingCoverCandidates;
+}
+
+/**
+ * Enrich a single saved book using newly fetched data while preserving valid existing data
+ */
+export function enrichBookRecord(existingBook, freshData) {
+  if (!existingBook) return null;
+  if (!freshData) return existingBook;
+
+  const mergedMeta = mergeBookMetadata(existingBook, freshData);
+
+  // Preserve existing cover candidates, append fresh candidates without duplicates
+  const existingCandidates = Array.isArray(existingBook.coverCandidates) ? existingBook.coverCandidates : (existingBook.cover ? [existingBook.cover] : []);
+  const freshCandidates = Array.isArray(freshData.coverCandidates) ? freshData.coverCandidates : (freshData.cover ? [freshData.cover] : []);
+
+  const combinedCandidates = [...existingCandidates];
+  for (const c of freshCandidates) {
+    if (c && !combinedCandidates.includes(c)) {
+      combinedCandidates.push(c);
+    }
+  }
+
+  const resolvedCover = existingBook.cover || freshData.cover || combinedCandidates[0] || null;
+
+  return {
+    ...existingBook,
+    title: mergedMeta.title || existingBook.title,
+    author: mergedMeta.author || existingBook.author,
+    year: mergedMeta.year || existingBook.year,
+    publisher: mergedMeta.publisher || existingBook.publisher,
+    genre: mergedMeta.genre || existingBook.genre,
+    ageGroup: mergedMeta.ageGroup || existingBook.ageGroup,
+    language: mergedMeta.language || existingBook.language,
+    cover: resolvedCover,
+    coverCandidates: combinedCandidates,
+    fallbackCover: existingBook.fallbackCover || freshData.fallbackCover || combinedCandidates[1] || null,
+    enrichedAt: new Date().toISOString(),
+  };
+}
+
+/**
+ * Refresh and enrich missing data in all saved library books asynchronously.
+ * Skips already complete records. Updates localStorage and calls onUpdated callback if any changes occur.
+ */
+export async function refreshSavedBooks(onUpdated) {
+  const books = getSavedBooks();
+  if (!books || books.length === 0) return books;
+
+  let anyUpdated = false;
+  const updatedBooks = [...books];
+
+  for (let i = 0; i < updatedBooks.length; i++) {
+    const book = updatedBooks[i];
+    if (!doesBookNeedEnrichment(book)) {
+      continue;
+    }
+
+    const rawIsbn = book.rawIsbn || normalizeIsbn(book.isbn);
+    if (!rawIsbn) continue;
+
+    try {
+      const freshData = await fetchBookByIsbn(rawIsbn);
+      if (freshData) {
+        const enriched = enrichBookRecord(book, freshData);
+        // Only mark updated if metadata or cover candidates actually changed
+        if (
+          enriched.author !== book.author ||
+          enriched.year !== book.year ||
+          enriched.publisher !== book.publisher ||
+          enriched.genre !== book.genre ||
+          enriched.cover !== book.cover ||
+          (enriched.coverCandidates?.length || 0) > (book.coverCandidates?.length || 0)
+        ) {
+          updatedBooks[i] = enriched;
+          anyUpdated = true;
+        }
+      }
+    } catch (err) {
+      console.warn(`Failed to refresh book ${book.title || rawIsbn}:`, err);
+    }
+  }
+
+  if (anyUpdated) {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedBooks));
+      if (typeof onUpdated === 'function') {
+        onUpdated(updatedBooks);
+      }
+    } catch (e) {
+      console.error('Failed to save refreshed books to localStorage:', e);
+    }
+  }
+
+  return updatedBooks;
 }

@@ -195,3 +195,67 @@ test('supplements missing author and year for test book Zranene srdce when ISBN 
   assert.equal(book.author, 'John Eldredge');
   assert.notEqual(book.year, 'Neuvedeno');
 });
+
+test('evaluates multiple items from Google Books query and selects the best matching candidate with cover', async () => {
+  const { selectBestGoogleBooksCandidate } = await import('../src/services/bookApi.js');
+
+  const items = [
+    {
+      volumeInfo: {
+        title: 'Unrelated Title',
+        authors: ['Other Author'],
+        publishedDate: '1990',
+      },
+    },
+    {
+      volumeInfo: {
+        title: 'Rady zkušeného ďábla',
+        authors: ['C. S. Lewis'],
+        publishedDate: '2008',
+        publisher: 'Návrat domů',
+        imageLinks: {
+          thumbnail: 'http://books.google.com/rady-thumb.jpg',
+        },
+      },
+    },
+    {
+      volumeInfo: {
+        title: 'Rady zkuseneho dabla - pracovni sesit',
+        authors: ['Někdo Jiný'],
+      },
+    },
+  ];
+
+  const best = selectBestGoogleBooksCandidate(items, 'Rady zkušeného ďábla', 'C. S. Lewis');
+  assert.notEqual(best, null);
+  assert.equal(best.title, 'Rady zkušeného ďábla');
+  assert.equal(best.author, 'C. S. Lewis');
+  assert.equal(best.year, '2008');
+  assert.equal(best.cover, 'https://books.google.com/rady-thumb.jpg');
+});
+
+test('evaluates multiple items from Open Library docs and selects candidate with title match and cover', async () => {
+  const { selectBestOpenLibraryCandidate } = await import('../src/services/bookApi.js');
+
+  const docs = [
+    {
+      title: 'Random Book',
+      author_name: ['Nobody'],
+      first_publish_year: 1980,
+    },
+    {
+      title: 'Zraněné srdce',
+      author_name: ['John Eldredge'],
+      first_publish_year: 2007,
+      publisher: ['Návrat domů'],
+      cover_i: 6808063,
+    },
+  ];
+
+  const best = selectBestOpenLibraryCandidate(docs, 'Zraněné srdce', 'John Eldredge');
+  assert.notEqual(best, null);
+  assert.equal(best.title, 'Zraněné srdce');
+  assert.equal(best.author, 'John Eldredge');
+  assert.equal(best.year, '2007');
+  assert.equal(best.cover, 'https://covers.openlibrary.org/b/id/6808063-L.jpg');
+});
