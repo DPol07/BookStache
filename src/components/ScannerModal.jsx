@@ -200,7 +200,7 @@ export default function ScannerModal({ isOpen, onClose, onScanSuccess, onOpenMan
         {/* Initializing Spinner */}
         {isInitializing && !scannerError && (
           <div style={{ backgroundColor: '#FAF6F0', color: '#3D2314' }} className="absolute inset-0 flex flex-col items-center justify-center gap-3">
-            <RefreshCw className="w-8 h-8 text-amber-600 animate-spin" />
+            <RefreshCw className="w-8 h-8 animate-spin" style={{ color: '#5C3A24' }} />
             <p className="text-sm font-medium">Spouštění fotoaparátu...</p>
           </div>
         )}
