@@ -157,6 +157,50 @@ export function saveBook(book) {
 /**
  * Remove a book by ID from localStorage
  */
+/**
+ * Update an existing book in localStorage.
+ * Checks for duplicates against other books (excluding current book ID).
+ * Returns { success: boolean, book: Object, error?: string }
+ */
+export function updateBook(updatedBook) {
+  if (!updatedBook || !updatedBook.id) {
+    return { success: false, error: 'Neplatné ID knihy' };
+  }
+
+  try {
+    const books = getSavedBooks();
+    const existingIndex = books.findIndex(b => b.id === updatedBook.id);
+    if (existingIndex === -1) {
+      return { success: false, error: 'Kniha nebyla nalezena' };
+    }
+
+    // Check duplicate against all OTHER books
+    const otherBooks = books.filter(b => b.id !== updatedBook.id);
+    const duplicate = findDuplicateBook(updatedBook, otherBooks);
+
+    if (duplicate) {
+      return {
+        success: false,
+        error: `Kniha s tímto ISBN nebo názvem a autorem již v knihovně existuje („${duplicate.title}“).`,
+        duplicateBook: duplicate,
+      };
+    }
+
+    const merged = {
+      ...books[existingIndex],
+      ...updatedBook,
+      updatedAt: new Date().toISOString(),
+    };
+
+    books[existingIndex] = merged;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(books));
+    return { success: true, book: merged };
+  } catch (e) {
+    console.error('Failed to update book in localStorage:', e);
+    return { success: false, error: 'Chyba při ukládání úprav' };
+  }
+}
+
 export function deleteBook(id) {
   try {
     const books = getSavedBooks();
