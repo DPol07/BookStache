@@ -112,8 +112,18 @@ export default function BookDetailModal({ isOpen, book, onClose, onDeleteBook })
                 <Hash className="w-4 h-4 shrink-0" style={{ color: '#8C593B' }} />
                 ISBN
               </span>
-              <span style={{ color: '#5C3A24' }} className="font-mono font-bold">{book.isbn}</span>
+              <span style={{ color: '#5C3A24' }} className="font-mono font-bold">{book.isbn || 'Bez ISBN'}</span>
             </div>
+
+            {book.editionNote && (
+              <div className="flex items-center justify-between py-1.5 border-t" style={{ borderColor: '#E6D7C3' }}>
+                <span style={{ color: '#5C3A24' }} className="flex items-center gap-2 font-medium">
+                  <Tag className="w-4 h-4 shrink-0" style={{ color: '#8C593B' }} />
+                  Vydání / Poznámka
+                </span>
+                <span style={{ color: '#3D2314' }} className="font-medium text-right max-w-[200px] truncate">{book.editionNote}</span>
+              </div>
+            )}
 
             {formattedDate && (
               <div className="flex items-center justify-between py-1.5">

@@ -726,6 +726,134 @@ export function assembleCoverCandidates({
   return candidates;
 }
 
+// Search books online by query (title, author, or keywords) across Google Books and Open Library
+export async function searchBooksOnline(query, limit = 8) {
+  if (!query || !query.trim()) return [];
+  const cleanQ = query.trim();
+
+  try {
+    const [gbRes, olRes] = await Promise.allSettled([
+      fetchWithTimeout(`https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(cleanQ)}&maxResults=${Math.min(limit, 10)}`),
+      fetchWithTimeout(`https://openlibrary.org/search.json?q=${encodeURIComponent(cleanQ)}&limit=${Math.min(limit, 10)}`)
+    ]);
+
+    const results = [];
+    const seenTitles = new Set();
+
+    // Parse Google Books results
+    if (gbRes.status === 'fulfilled' && gbRes.value.ok) {
+      try {
+        const gbData = await gbRes.value.json();
+        if (gbData.items && Array.isArray(gbData.items)) {
+          for (const item of gbData.items) {
+            const parsed = parseGoogleBooksItem(item);
+            if (parsed && parsed.title) {
+              const industryIds = item.volumeInfo?.industryIdentifiers || [];
+              const isbn13 = industryIds.find(i => i.type === 'ISBN_13')?.identifier;
+              const isbn10 = industryIds.find(i => i.type === 'ISBN_10')?.identifier;
+              const foundIsbn = isbn13 || isbn10 || '';
+
+              const cleanIsbn = normalizeIsbn(foundIsbn);
+              const obalkyCover = cleanIsbn ? `https://www.obalkyknih.cz/api/cover?isbn=${cleanIsbn}` : null;
+              const coverCandidates = assembleCoverCandidates({
+                cleanIsbn,
+                obalkyCover,
+                gbIsbnCover: parsed.cover,
+                olIsbnCover: cleanIsbn ? `https://covers.openlibrary.org/b/isbn/${cleanIsbn}-L.jpg` : null,
+                gbQueryCover: parsed.cover,
+              });
+
+              const bookResult = {
+                id: `online-gb-${item.id || Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+                title: parsed.title,
+                author: parsed.author || 'Neznámý autor',
+                year: parsed.year || 'Neuvedeno',
+                publisher: parsed.publisher || 'Neuvedeno',
+                genre: parsed.genre || 'Všeobecná literatura',
+                ageGroup: parsed.ageGroup || 'Všeobecná veřejnost',
+                language: parsed.language || 'Čeština',
+                isbn: cleanIsbn ? formatIsbnDisplay(cleanIsbn) : '',
+                rawIsbn: cleanIsbn || '',
+                cover: coverCandidates[0] || parsed.cover || null,
+                coverCandidates,
+                fallbackCover: coverCandidates[1] || coverCandidates[0] || null,
+                source: 'Google Books',
+              };
+
+              const titleKey = `${normalizeTitleForMatch(bookResult.title)}|${normalizeTitleForMatch(bookResult.author)}`;
+              if (!seenTitles.has(titleKey)) {
+                seenTitles.add(titleKey);
+                results.push(bookResult);
+              }
+            }
+          }
+        }
+      } catch (err) {
+        console.warn('Error parsing Google Books query response:', err);
+      }
+    }
+
+    // Parse Open Library results
+    if (olRes.status === 'fulfilled' && olRes.value.ok) {
+      try {
+        const olData = await olRes.value.json();
+        if (olData.docs && Array.isArray(olData.docs)) {
+          for (const doc of olData.docs) {
+            const title = toDisplayText(doc.title);
+            if (!title) continue;
+
+            const author = Array.isArray(doc.author_name)
+              ? doc.author_name.map((item) => toDisplayText(item)).filter(Boolean).join(', ')
+              : 'Neznámý autor';
+            const titleKey = `${normalizeTitleForMatch(title)}|${normalizeTitleForMatch(author)}`;
+            if (seenTitles.has(titleKey)) continue;
+
+            const isbns = Array.isArray(doc.isbn) ? doc.isbn : [];
+            const cleanIsbn = isbns.length > 0 ? normalizeIsbn(isbns[0]) : '';
+            const year = toDisplayText(doc.first_publish_year, 'Neuvedeno');
+            const publisher = Array.isArray(doc.publisher) ? toDisplayText(doc.publisher[0], 'Neuvedeno') : toDisplayText(doc.publisher, 'Neuvedeno');
+            const genre = translateGenre(doc.subject);
+            const coverUrl = doc.cover_i ? `https://covers.openlibrary.org/b/id/${doc.cover_i}-L.jpg` : (cleanIsbn ? `https://covers.openlibrary.org/b/isbn/${cleanIsbn}-L.jpg` : null);
+            const obalkyCover = cleanIsbn ? `https://www.obalkyknih.cz/api/cover?isbn=${cleanIsbn}` : null;
+
+            const coverCandidates = assembleCoverCandidates({
+              cleanIsbn,
+              obalkyCover,
+              olIsbnCover: coverUrl,
+              olQueryCover: coverUrl,
+            });
+
+            seenTitles.add(titleKey);
+            results.push({
+              id: `online-ol-${doc.key?.replace('/works/', '') || Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+              title,
+              author,
+              year,
+              publisher,
+              genre,
+              ageGroup: inferAgeGroup(doc.subject, title),
+              language: doc.language ? (LANGUAGE_MAP[doc.language[0]] || doc.language[0]) : 'Čeština',
+              isbn: cleanIsbn ? formatIsbnDisplay(cleanIsbn) : '',
+              rawIsbn: cleanIsbn || '',
+              cover: coverCandidates[0] || coverUrl || null,
+              coverCandidates,
+              fallbackCover: coverCandidates[1] || coverCandidates[0] || null,
+              source: 'Open Library',
+            });
+          }
+        }
+      } catch (err) {
+        console.warn('Error parsing Open Library query response:', err);
+      }
+    }
+
+    return results.slice(0, limit);
+  } catch (err) {
+    console.error('searchBooksOnline failed:', err);
+    return [];
+  }
+}
+
 // Primary Aggregator Function
 export async function fetchBookByIsbn(rawIsbn) {
   const cleanIsbn = normalizeIsbn(rawIsbn);
