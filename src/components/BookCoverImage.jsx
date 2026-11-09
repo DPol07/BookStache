@@ -75,13 +75,18 @@ export default function BookCoverImage({
   };
 
   if (!currentUrl || hasFailedAll) {
+    const bgColor = book?.customCoverColor || '#F2E8D8';
+    const isCustomDark = !!book?.customCoverColor;
+    const textColor = isCustomDark ? '#FAF6F0' : '#3D2314';
+    const subtextColor = isCustomDark ? '#F2E8D8' : '#5C3A24';
+
     if (size === 'thumb') {
       return (
         <div
           className={`flex flex-col items-center justify-center p-1 text-[9px] text-center w-full h-full ${placeholderClassName}`}
-          style={{ backgroundColor: '#F2E8D8', color: '#3D2314' }}
+          style={{ backgroundColor: bgColor, color: textColor }}
         >
-          <Book className="w-5 h-5 mb-0.5" style={{ color: '#5C3A24' }} />
+          <Book className="w-5 h-5 mb-0.5" style={{ color: subtextColor }} />
           <span className="line-clamp-2 leading-tight text-[8px] font-serif">{book?.title}</span>
         </div>
       );
@@ -89,25 +94,25 @@ export default function BookCoverImage({
 
     return (
       <div
-        style={{ backgroundColor: '#F2E8D8', color: '#3D2314' }}
+        style={{ backgroundColor: bgColor, color: textColor }}
         className={`flex flex-col items-center justify-between p-3 text-center w-full h-full ${placeholderClassName}`}
       >
-        <div style={{ backgroundColor: '#4A2E1B', color: '#FAF6F0' }} className="p-1.5 rounded-full mt-2">
+        <div style={{ backgroundColor: isCustomDark ? '#FAF6F0' : '#4A2E1B', color: isCustomDark ? '#3D2314' : '#FAF6F0' }} className="p-1.5 rounded-full mt-2">
           <Book className="w-6 h-6" />
         </div>
         <div className="space-y-1 my-auto">
           <span className="text-[10px] font-bold leading-snug line-clamp-3 block px-1 font-serif">
             {book?.title}
           </span>
-          <span style={{ color: '#5C3A24' }} className="text-[9px] truncate max-w-full block px-1">
+          <span style={{ color: subtextColor }} className="text-[9px] truncate max-w-full block px-1">
             {book?.author}
           </span>
         </div>
         <span
-          style={{ color: '#8C593B', borderColor: '#E6D7C3' }}
+          style={{ color: isCustomDark ? '#FAF6F0' : '#8C593B', borderColor: isCustomDark ? 'rgba(255,255,255,0.2)' : '#E6D7C3' }}
           className="text-[8px] font-mono border-t pt-1 w-full truncate"
         >
-          {book?.isbn}
+          {book?.isbn || 'Bez ISBN'}
         </span>
       </div>
     );

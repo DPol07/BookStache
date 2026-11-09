@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Header from './components/Header';
 import MainScreen from './components/MainScreen';
 import ScannerModal from './components/ScannerModal';
-import ManualIsbnModal from './components/ManualIsbnModal';
+import ManualBookModal from './components/ManualBookModal';
 import BookResultModal from './components/BookResultModal';
 import LibraryModal from './components/LibraryModal';
 import BookDetailModal from './components/BookDetailModal';
@@ -51,13 +51,23 @@ export default function App() {
   // Save book and return to main screen
   const handleSaveBook = (bookToSave) => {
     if (!bookToSave) return;
-    saveBook(bookToSave);
+    const result = saveBook(bookToSave);
     const updated = getSavedBooks();
     setLibraryBooks(updated);
 
     setTimeout(() => {
       setScannedBookResult(null);
     }, 300);
+    return result;
+  };
+
+  // Direct save for manual books without ISBN or online search selections
+  const handleSaveDirectBook = (bookToSave) => {
+    if (!bookToSave) return;
+    saveBook(bookToSave);
+    const updated = getSavedBooks();
+    setLibraryBooks(updated);
+    setIsManualInputOpen(false);
   };
 
   // Open existing book detail from duplicate detection notice
@@ -106,11 +116,12 @@ export default function App() {
         }}
       />
 
-      {/* Manual ISBN Entry Modal */}
-      <ManualIsbnModal
+      {/* Unified Manual Book & Search Entry Modal */}
+      <ManualBookModal
         isOpen={isManualInputOpen}
         onClose={() => setIsManualInputOpen(false)}
         onSubmitIsbn={handleLookupIsbn}
+        onSaveDirectBook={handleSaveDirectBook}
       />
 
       {/* Book Result Modal (Scanned / Searched) */}
@@ -140,6 +151,7 @@ export default function App() {
         onSelectBook={(book) => setSelectedBookForDetail(book)}
         onDeleteBook={handleDeleteBook}
         onStartScan={() => setIsScannerOpen(true)}
+        onOpenManualInput={() => setIsManualInputOpen(true)}
       />
 
       {/* Book Detail Modal (from Library) */}

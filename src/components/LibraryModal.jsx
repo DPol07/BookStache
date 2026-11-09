@@ -9,6 +9,7 @@ export default function LibraryModal({
   onSelectBook,
   onDeleteBook,
   onStartScan,
+  onOpenManualInput,
 }) {
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -98,17 +99,31 @@ export default function LibraryModal({
                 Naskenujte svou první knihu pomocí tlačítka "NASKENOVAT" na hlavní obrazovce.
               </p>
             </div>
-            <button
-              onClick={() => {
-                onClose();
-                onStartScan();
-              }}
-              style={{ backgroundColor: '#4A2E1B', color: '#FAF6F0' }}
-              className="py-3 px-5 font-bold text-xs rounded-2xl flex items-center gap-2 uppercase tracking-wider font-serif cursor-pointer"
-            >
-              <Plus className="w-4 h-4" />
-              Naskenovat knihu
-            </button>
+            <div className="flex flex-col sm:flex-row gap-2.5">
+              <button
+                onClick={() => {
+                  onClose();
+                  onStartScan();
+                }}
+                style={{ backgroundColor: '#4A2E1B', color: '#FAF6F0' }}
+                className="py-3 px-5 font-bold text-xs rounded-2xl flex items-center justify-center gap-2 uppercase tracking-wider font-serif cursor-pointer"
+              >
+                <Plus className="w-4 h-4" />
+                Naskenovat knihu
+              </button>
+              {onOpenManualInput && (
+                <button
+                  onClick={() => {
+                    onClose();
+                    onOpenManualInput();
+                  }}
+                  style={{ backgroundColor: '#F2E8D8', borderColor: '#8C593B', color: '#3D2314' }}
+                  className="py-3 px-5 font-bold text-xs rounded-2xl border flex items-center justify-center gap-2 font-serif cursor-pointer"
+                >
+                  Přidat ručně / Vyhledat
+                </button>
+              )}
+            </div>
           </div>
         ) : filteredBooks.length === 0 ? (
           /* Search No Results State */

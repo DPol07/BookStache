@@ -73,7 +73,7 @@ export default function MainScreen({ onStartScan, onOpenManualInput, libraryCoun
           className="w-full py-3.5 px-5 border rounded-2xl font-bold text-sm transition-all active:scale-[0.98] flex items-center justify-center gap-2.5 cursor-pointer shadow-2xs"
         >
           <Keyboard className="w-4 h-4" style={{ color: '#5C3A24' }} />
-          <span>Zadat ISBN ručně</span>
+          <span>Přidat knihu ručně / Vyhledat</span>
         </button>
 
         {/* Footer Hint */}
