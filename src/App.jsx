@@ -8,7 +8,7 @@ import LibraryModal from './components/LibraryModal';
 import BookDetailModal from './components/BookDetailModal';
 
 import { fetchBookByIsbn } from './services/bookApi';
-import { getSavedBooks, saveBook, deleteBook, findDuplicateBook } from './services/storage';
+import { getSavedBooks, saveBook, deleteBook, updateBook, findDuplicateBook } from './services/storage';
 
 export default function App() {
   const [libraryBooks, setLibraryBooks] = useState([]);
@@ -74,6 +74,17 @@ export default function App() {
   const handleOpenExistingBook = (existingBook) => {
     setScannedBookResult(null);
     setSelectedBookForDetail(existingBook);
+  };
+
+  // Update book in library
+  const handleUpdateBook = (updatedBook) => {
+    const result = updateBook(updatedBook);
+    if (result.success) {
+      const updated = getSavedBooks();
+      setLibraryBooks(updated);
+      setSelectedBookForDetail(result.book);
+    }
+    return result;
   };
 
   // Delete book from library
@@ -160,6 +171,7 @@ export default function App() {
         book={selectedBookForDetail}
         onClose={() => setSelectedBookForDetail(null)}
         onDeleteBook={handleDeleteBook}
+        onUpdateBook={handleUpdateBook}
       />
     </div>
   );
