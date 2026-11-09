@@ -221,7 +221,7 @@ export default function BookResultModal({
                 <Globe className="w-4 h-4 shrink-0" style={{ color: '#8C593B' }} />
                 Jazyk
               </span>
-              <span style={{ color: '#3D2314' }} className="font-bold">{book.language}</span>
+              <span style={{ color: '#3D2314' }} className="font-bold">{book.language || 'Neznámý'}</span>
             </div>
 
             <div className="flex items-center justify-between py-1.5">

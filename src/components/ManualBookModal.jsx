@@ -56,7 +56,7 @@ export default function ManualBookModal({
     publisher: '',
     genre: 'Krásná literatura / Próza',
     ageGroup: 'Všeobecná veřejnost',
-    language: 'Čeština',
+    language: '',
     editionNote: '',
     coverColor: COVER_COLORS[0].bg,
   });
@@ -120,7 +120,7 @@ export default function ManualBookModal({
       publisher: manualForm.publisher.trim() || 'Neuvedeno',
       genre: manualForm.genre.trim() || 'Krásná literatura / Próza',
       ageGroup: manualForm.ageGroup.trim() || 'Všeobecná veřejnost',
-      language: manualForm.language.trim() || 'Čeština',
+      language: manualForm.language.trim() || 'Neznámý',
       editionNote: manualForm.editionNote.trim() || '',
       isbn: 'Bez ISBN',
       rawIsbn: '',
@@ -140,7 +140,7 @@ export default function ManualBookModal({
         publisher: '',
         genre: 'Krásná literatura / Próza',
         ageGroup: 'Všeobecná veřejnost',
-        language: 'Čeština',
+        language: '',
         editionNote: '',
         coverColor: COVER_COLORS[0].bg,
       });
@@ -553,7 +553,7 @@ export default function ManualBookModal({
                     type="text"
                     value={manualForm.language}
                     onChange={(e) => setManualForm({ ...manualForm, language: e.target.value })}
-                    placeholder="Čeština"
+                    placeholder="Např. Čeština"
                     style={{ backgroundColor: '#FAF6F0', borderColor: '#8C593B', color: '#3D2314' }}
                     className="w-full px-3.5 py-2.5 border rounded-xl text-sm focus:outline-none"
                   />
