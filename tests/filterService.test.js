@@ -75,6 +75,18 @@ test('filterBooks filters by search query and multiple dimensions simultaneously
     language: 'Angličtina',
   });
   assert.equal(emptyRes.length, 0);
+
+  // Test book with missing/unknown language
+  const booksWithUnknown = [
+    ...mockBooks,
+    { id: '5', title: 'Neznámá kniha', language: 'Neznámý' },
+    { id: '6', title: 'Kniha bez jazyka', language: '' }
+  ];
+  const unknownLangOptions = getUniqueFilterOptions(booksWithUnknown);
+  assert.ok(unknownLangOptions.languages.includes('Neznámý'));
+
+  const unknownFilterRes = filterBooks(booksWithUnknown, { language: 'Neznámý' });
+  assert.equal(unknownFilterRes.length, 2);
 });
 
 test('sortBooks sorts by title A-Z, Z-A, year, and date correctly', () => {

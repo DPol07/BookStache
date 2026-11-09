@@ -38,7 +38,8 @@ export function filterBooks(books, { searchQuery = '', genre = '', author = '', 
 
     // 4. Language filter
     if (language && language !== 'all') {
-      if (book.language !== language) {
+      const bookLang = book.language || 'Neznámý';
+      if (bookLang !== language) {
         return false;
       }
     }
@@ -103,7 +104,8 @@ export function getUniqueFilterOptions(books = []) {
   for (const b of books) {
     if (b.genre && b.genre !== 'Neuvedeno') genres.add(b.genre);
     if (b.author && b.author !== 'Neznámý autor' && b.author !== 'Neuvedeno') authors.add(b.author);
-    if (b.language && b.language !== 'Neuvedeno') languages.add(b.language);
+    const lang = b.language || 'Neznámý';
+    if (lang && lang !== 'Neuvedeno') languages.add(lang);
   }
 
   return {

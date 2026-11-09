@@ -195,3 +195,118 @@ test('supplements missing author and year for test book Zranene srdce when ISBN 
   assert.equal(book.author, 'John Eldredge');
   assert.notEqual(book.year, 'Neuvedeno');
 });
+
+test('fetchBookByIsbn sets language to Neznámý and publisher to Neuvedeno when catalog has no language or publisher', async (t) => {
+  const originalFetch = globalThis.fetch;
+  t.after(() => { globalThis.fetch = originalFetch; });
+
+  globalThis.fetch = async (url) => {
+    const sUrl = String(url);
+    if (sUrl.includes('www.knihovny.cz')) {
+      return {
+        ok: true,
+        json: async () => ({ records: [{
+          title: 'Záhadná neznámá kniha',
+          authors: [{ name: 'Neznámý autor' }],
+          publishDate: '2023',
+          publisher: null,
+          languages: [],
+        }] }),
+      };
+    }
+    return { ok: false, json: async () => ({}) };
+  };
+
+  const book = await fetchBookByIsbn('9789999999999');
+  assert.notEqual(book, null);
+  assert.equal(book.title, 'Záhadná neznámá kniha');
+  assert.equal(book.publisher, 'Neuvedeno');
+  assert.equal(book.language, 'Neznámý');
+});
+
+test('fetchBookByIsbn preserves edition language and publisher and prevents query search from overwriting them', async (t) => {
+  const originalFetch = globalThis.fetch;
+  t.after(() => { globalThis.fetch = originalFetch; });
+
+  // Simulate ISBN returning a specific edition with publisher and Slovak language, but missing author
+  // And title query returning a different English edition with different publisher
+  globalThis.fetch = async (url) => {
+    const sUrl = String(url);
+    if (sUrl.includes('googleapis.com') && sUrl.includes('isbn:9788099999999')) {
+      return {
+        ok: true,
+        json: async () => ({ items: [{
+          volumeInfo: {
+            title: 'Krásna kniha',
+            publisher: 'Slovenské vydavateľstvo',
+            language: 'sk',
+          }
+        }] }),
+      };
+    }
+    if (sUrl.includes('googleapis.com') && sUrl.includes('intitle:')) {
+      return {
+        ok: true,
+        json: async () => ({ items: [{
+          volumeInfo: {
+            title: 'Krásna kniha',
+            authors: ['Známy Autor'],
+            publisher: 'Foreign English Publisher',
+            language: 'en',
+          }
+        }] }),
+      };
+    }
+    return { ok: false, json: async () => ({}) };
+  };
+
+  const book = await fetchBookByIsbn('9788099999999');
+  assert.notEqual(book, null);
+  assert.equal(book.title, 'Krásna kniha');
+  assert.equal(book.author, 'Známy Autor'); // supplemented
+  assert.equal(book.publisher, 'Slovenské vydavateľstvo'); // NOT overwritten by Foreign English Publisher
+  assert.equal(book.language, 'Slovenština'); // NOT overwritten by English
+});
+
+test('fetchBookByIsbn does not supplement missing publisher or language from another edition during title query', async (t) => {
+  const originalFetch = globalThis.fetch;
+  t.after(() => { globalThis.fetch = originalFetch; });
+
+  // Simulate ISBN returning title without publisher and without language
+  // And title query returning a different edition with publisher and language
+  globalThis.fetch = async (url) => {
+    const sUrl = String(url);
+    if (sUrl.includes('googleapis.com') && sUrl.includes('isbn:9788011111111')) {
+      return {
+        ok: true,
+        json: async () => ({ items: [{
+          volumeInfo: {
+            title: 'Ojedinelý tisk',
+          }
+        }] }),
+      };
+    }
+    if (sUrl.includes('googleapis.com') && sUrl.includes('intitle:')) {
+      return {
+        ok: true,
+        json: async () => ({ items: [{
+          volumeInfo: {
+            title: 'Ojedinelý tisk',
+            authors: ['Ján Novák'],
+            publisher: 'Iné Vydavateľstvo',
+            language: 'de',
+          }
+        }] }),
+      };
+    }
+    return { ok: false, json: async () => ({}) };
+  };
+
+  const book = await fetchBookByIsbn('9788011111111');
+  assert.notEqual(book, null);
+  assert.equal(book.title, 'Ojedinelý tisk');
+  assert.equal(book.author, 'Ján Novák'); // supplemented
+  // Language and publisher MUST NOT be taken from the other edition!
+  assert.equal(book.publisher, 'Neuvedeno');
+  assert.equal(book.language, 'Neznámý');
+});

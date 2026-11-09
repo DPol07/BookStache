@@ -51,7 +51,7 @@ export default function BookDetailModal({ isOpen, book, onClose, onDeleteBook, o
         year: book.year === 'Neuvedeno' ? '' : (book.year || ''),
         publisher: book.publisher === 'Neuvedeno' ? '' : (book.publisher || ''),
         genre: book.genre || 'Beletrie',
-        language: book.language || 'Čeština',
+        language: book.language || '',
         isbn: book.rawIsbn || book.isbn || '',
         editionNote: book.editionNote || '',
         customCoverColor: book.customCoverColor || '#4A2E1B',
@@ -89,7 +89,7 @@ export default function BookDetailModal({ isOpen, book, onClose, onDeleteBook, o
       year: book.year === 'Neuvedeno' ? '' : (book.year || ''),
       publisher: book.publisher === 'Neuvedeno' ? '' : (book.publisher || ''),
       genre: book.genre || 'Beletrie',
-      language: book.language || 'Čeština',
+      language: book.language || '',
       isbn: book.rawIsbn || book.isbn || '',
       editionNote: book.editionNote || '',
       customCoverColor: book.customCoverColor || '#4A2E1B',
@@ -111,7 +111,7 @@ export default function BookDetailModal({ isOpen, book, onClose, onDeleteBook, o
       year: editForm.year.trim() || 'Neuvedeno',
       publisher: editForm.publisher.trim() || 'Neuvedeno',
       genre: editForm.genre.trim() || 'Všeobecná literatura',
-      language: editForm.language.trim() || 'Čeština',
+      language: editForm.language.trim() || 'Neznámý',
       isbn: cleanIsbn ? formatIsbnDisplay(cleanIsbn) : (editForm.isbn.trim() || 'Bez ISBN'),
       rawIsbn: cleanIsbn,
       editionNote: editForm.editionNote.trim(),
@@ -279,7 +279,7 @@ export default function BookDetailModal({ isOpen, book, onClose, onDeleteBook, o
                     type="text"
                     value={editForm.language}
                     onChange={(e) => setEditForm({ ...editForm, language: e.target.value })}
-                    placeholder="Čeština"
+                    placeholder="Např. Čeština"
                     style={{ backgroundColor: '#FAF6F0', borderColor: '#8C593B', color: '#3D2314' }}
                     className="w-full px-3.5 py-2.5 border rounded-xl text-xs font-semibold focus:outline-none"
                   />
@@ -423,7 +423,7 @@ export default function BookDetailModal({ isOpen, book, onClose, onDeleteBook, o
                   <Globe className="w-4 h-4 shrink-0" style={{ color: '#8C593B' }} />
                   Jazyk
                 </span>
-                <span style={{ color: '#3D2314' }} className="font-bold">{book.language}</span>
+                <span style={{ color: '#3D2314' }} className="font-bold">{book.language || 'Neznámý'}</span>
               </div>
 
               <div className="flex items-center justify-between py-1.5">

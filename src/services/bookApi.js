@@ -61,32 +61,64 @@ export function formatIsbnDisplay(isbn) {
 export const LANGUAGE_MAP = {
   cs: 'Čeština',
   cze: 'Čeština',
+  ces: 'Čeština',
+  czech: 'Čeština',
   en: 'Angličtina',
   eng: 'Angličtina',
+  english: 'Angličtina',
   sk: 'Slovenština',
   slo: 'Slovenština',
   slk: 'Slovenština',
+  slovak: 'Slovenština',
   de: 'Němčina',
   ger: 'Němčina',
   deu: 'Němčina',
+  german: 'Němčina',
   fr: 'Francouzština',
   fre: 'Francouzština',
   fra: 'Francouzština',
+  french: 'Francouzština',
   es: 'Španělština',
   spa: 'Španělština',
+  spanish: 'Španělština',
   it: 'Italština',
   ita: 'Italština',
+  italian: 'Italština',
   ru: 'Ruština',
   rus: 'Ruština',
+  russian: 'Ruština',
   pl: 'Polština',
   pol: 'Polština',
+  polish: 'Polština',
   ja: 'Japonština',
   jpn: 'Japonština',
+  japanese: 'Japonština',
   zh: 'Čínština',
   zho: 'Čínština',
+  chinese: 'Čínština',
   la: 'Latina',
   lat: 'Latina',
+  latin: 'Latina',
 };
+
+// Helper to normalize and translate a language string or code
+export function normalizeLanguage(rawLang) {
+  if (!rawLang) return 'Neznámý';
+  const clean = toDisplayText(rawLang).trim();
+  if (!clean || clean === 'Neuvedeno' || clean === 'Neznámý') return 'Neznámý';
+
+  const lower = clean.toLowerCase();
+  if (LANGUAGE_MAP[lower]) {
+    return LANGUAGE_MAP[lower];
+  }
+
+  // Already a known Czech name in LANGUAGE_MAP
+  const knownValues = Object.values(LANGUAGE_MAP);
+  const matchedValue = knownValues.find((v) => v.toLowerCase() === lower);
+  if (matchedValue) return matchedValue;
+
+  return clean;
+}
 
 // Genre category translation mapping
 export function translateGenre(categories) {
@@ -415,6 +447,11 @@ export async function fetchKnihovnyCz(cleanIsbn) {
     const genre = translateGenre(record.genres || record.topic);
     const cover = record.cover ? `https://www.obalkyknih.cz/api/cover?isbn=${cleanIsbn}` : null;
 
+    const rawLang = Array.isArray(record.languages)
+      ? (record.languages.length > 0 ? record.languages[0] : null)
+      : (record.languages || record.language);
+    const language = rawLang ? normalizeLanguage(rawLang) : 'Neznámý';
+
     return {
       title,
       author,
@@ -422,7 +459,7 @@ export async function fetchKnihovnyCz(cleanIsbn) {
       publisher,
       genre,
       ageGroup: inferAgeGroup(genre, title),
-      language: 'Čeština',
+      language,
       cover,
     };
   } catch (e) {
@@ -444,7 +481,7 @@ function parseGoogleBooksItem(item) {
     ? coverUrl.replace(/^http:/, 'https:').replace('&edge=curl', '')
     : null;
 
-  const lang = info.language ? (LANGUAGE_MAP[info.language.toLowerCase()] || info.language.toUpperCase()) : 'Čeština';
+  const lang = info.language ? normalizeLanguage(info.language) : 'Neznámý';
 
   return {
     title: toDisplayText(info.title),
@@ -531,6 +568,66 @@ export async function fetchGoogleBooksByQuery(title, author = '') {
 // Fetch book details from Open Library API by ISBN
 export async function fetchOpenLibrary(cleanIsbn) {
   try {
+    // 1. Direct edition JSON endpoint (exact edition details for this specific ISBN)
+    try {
+      const editionUrl = `https://openlibrary.org/isbn/${cleanIsbn}.json`;
+      const editionRes = await fetchWithTimeout(editionUrl);
+      if (editionRes.ok) {
+        const ed = await editionRes.json();
+        if (ed && ed.title) {
+          const year = ed.publish_date ? (ed.publish_date.match(/\d{4}/)?.[0] || ed.publish_date) : '';
+          const publishers = Array.isArray(ed.publishers)
+            ? ed.publishers.map((item) => toDisplayText(item?.name ?? item)).filter(Boolean).join(', ')
+            : toDisplayText(ed.publishers);
+
+          let author = '';
+          if (Array.isArray(ed.authors) && ed.authors.length > 0) {
+            // If authors are keys like { key: '/authors/OL...' }
+            const authorNames = [];
+            for (const a of ed.authors) {
+              if (a.name) {
+                authorNames.push(toDisplayText(a.name));
+              } else if (a.key) {
+                try {
+                  const aRes = await fetchWithTimeout(`https://openlibrary.org${a.key}.json`, {}, 2000);
+                  if (aRes.ok) {
+                    const aData = await aRes.json();
+                    if (aData.name) authorNames.push(toDisplayText(aData.name));
+                  }
+                } catch {
+                  // ignore author key fetch error
+                }
+              }
+            }
+            author = authorNames.join(', ');
+          }
+
+          let lang = 'Neznámý';
+          if (Array.isArray(ed.languages) && ed.languages.length > 0) {
+            const raw = ed.languages[0]?.key?.replace('/languages/', '') || ed.languages[0];
+            lang = normalizeLanguage(raw);
+          }
+
+          const coverId = Array.isArray(ed.covers) && ed.covers.length > 0 ? ed.covers[0] : null;
+          const cover = coverId ? `https://covers.openlibrary.org/b/id/${coverId}-L.jpg` : `https://covers.openlibrary.org/b/isbn/${cleanIsbn}-L.jpg`;
+
+          return {
+            title: toDisplayText(ed.title),
+            author,
+            year: toDisplayText(year),
+            publisher: publishers,
+            genre: translateGenre(ed.subjects),
+            ageGroup: inferAgeGroup(ed.subjects, ed.title),
+            language: lang,
+            cover,
+          };
+        }
+      }
+    } catch (e) {
+      console.warn('Open Library isbn.json error:', e);
+    }
+
+    // 2. Bibkeys jscmd=data endpoint
     const bibUrl = `https://openlibrary.org/api/books?bibkeys=ISBN:${cleanIsbn}&format=json&jscmd=data`;
     const response = await fetchWithTimeout(bibUrl);
     if (response.ok) {
@@ -551,7 +648,11 @@ export async function fetchOpenLibrary(cleanIsbn) {
           cover = `https://covers.openlibrary.org/b/isbn/${cleanIsbn}-L.jpg`;
         }
 
-        const lang = book.languages ? (LANGUAGE_MAP[book.languages[0]?.key?.replace('/languages/', '')] || 'Čeština') : 'Čeština';
+        let lang = 'Neznámý';
+        if (Array.isArray(book.languages) && book.languages.length > 0) {
+          const raw = book.languages[0]?.key?.replace('/languages/', '') || book.languages[0]?.name || book.languages[0];
+          lang = normalizeLanguage(raw);
+        }
 
         return {
           title: book.title || '',
@@ -566,23 +667,7 @@ export async function fetchOpenLibrary(cleanIsbn) {
       }
     }
 
-    // Fallback to search API by ISBN
-    const searchUrl = `https://openlibrary.org/search.json?q=${cleanIsbn}`;
-    const sRes = await fetchWithTimeout(searchUrl);
-    if (!sRes.ok) return null;
-    const sData = await sRes.json();
-    if (!sData.docs || sData.docs.length === 0) return null;
-    const doc = sData.docs[0];
-    return {
-      title: toDisplayText(doc.title),
-      author: Array.isArray(doc.author_name) ? doc.author_name.map((item) => toDisplayText(item)).filter(Boolean).join(', ') : '',
-      year: toDisplayText(doc.first_publish_year),
-      publisher: Array.isArray(doc.publisher) ? toDisplayText(doc.publisher[0]) : toDisplayText(doc.publisher),
-      genre: translateGenre(doc.subject),
-      ageGroup: inferAgeGroup(doc.subject, doc.title),
-      language: doc.language ? (LANGUAGE_MAP[doc.language[0]] || doc.language[0]) : 'Čeština',
-      cover: doc.cover_i ? `https://covers.openlibrary.org/b/id/${doc.cover_i}-L.jpg` : `https://covers.openlibrary.org/b/isbn/${cleanIsbn}-L.jpg`,
-    };
+    return null;
   } catch (e) {
     console.warn('Open Library fetch error:', e);
     return null;
@@ -654,19 +739,29 @@ export function isFieldMissing(val, defaults = []) {
   return defaults.includes(str);
 }
 
-// Merge book metadata carefully: keeps existing valid fields, only fills missing ones
-export function mergeBookMetadata(primary, supplement) {
+// Merge book metadata carefully: keeps existing valid fields, only fills missing ones.
+// When merging from another query or edition (supplementFromOtherEdition = true),
+// language and publisher MUST NOT be overwritten or supplemented from other editions!
+export function mergeBookMetadata(primary, supplement, options = {}) {
   if (!supplement) return primary;
   if (!primary) return supplement;
+
+  const { isOtherEdition = false } = options;
 
   return {
     title: isFieldMissing(primary.title, ['Neznámý název', '']) ? (supplement.title || primary.title) : primary.title,
     author: isFieldMissing(primary.author, ['Neznámý autor', '']) ? (supplement.author || primary.author) : primary.author,
     year: isFieldMissing(primary.year, ['Neuvedeno', 'Rok vydání neuveden', '']) ? (supplement.year || primary.year) : primary.year,
-    publisher: isFieldMissing(primary.publisher, ['Neuvedeno', 'Nakladatelství neuvedeno', '']) ? (supplement.publisher || primary.publisher) : primary.publisher,
+    // Publisher must never come from another edition
+    publisher: isOtherEdition
+      ? primary.publisher
+      : (isFieldMissing(primary.publisher, ['Neuvedeno', 'Nakladatelství neuvedeno', '']) ? (supplement.publisher || primary.publisher) : primary.publisher),
     genre: isFieldMissing(primary.genre, ['Všeobecná literatura', 'Beletrie', '']) ? (supplement.genre || primary.genre) : primary.genre,
     ageGroup: isFieldMissing(primary.ageGroup, ['Všeobecná veřejnost', '']) ? (supplement.ageGroup || primary.ageGroup) : primary.ageGroup,
-    language: isFieldMissing(primary.language, ['Čeština', '']) ? (supplement.language || primary.language) : primary.language,
+    // Language must never come from another edition
+    language: isOtherEdition
+      ? primary.language
+      : (isFieldMissing(primary.language, ['Neznámý', '']) ? (supplement.language || primary.language) : primary.language),
   };
 }
 
@@ -771,7 +866,7 @@ export async function searchBooksOnline(query, limit = 8) {
                 publisher: parsed.publisher || 'Neuvedeno',
                 genre: parsed.genre || 'Všeobecná literatura',
                 ageGroup: parsed.ageGroup || 'Všeobecná veřejnost',
-                language: parsed.language || 'Čeština',
+                language: parsed.language || 'Neznámý',
                 isbn: cleanIsbn ? formatIsbnDisplay(cleanIsbn) : '',
                 rawIsbn: cleanIsbn || '',
                 cover: coverCandidates[0] || parsed.cover || null,
@@ -832,7 +927,7 @@ export async function searchBooksOnline(query, limit = 8) {
               publisher,
               genre,
               ageGroup: inferAgeGroup(doc.subject, title),
-              language: doc.language ? (LANGUAGE_MAP[doc.language[0]] || doc.language[0]) : 'Čeština',
+              language: doc.language ? normalizeLanguage(doc.language[0]) : 'Neznámý',
               isbn: cleanIsbn ? formatIsbnDisplay(cleanIsbn) : '',
               rawIsbn: cleanIsbn || '',
               cover: coverCandidates[0] || coverUrl || null,
@@ -901,7 +996,14 @@ export async function fetchBookByIsbn(rawIsbn) {
   // Check if at least one ISBN source returned any book information
   const hasIsbnData = !!(knihovnyData || gbData || olData);
 
-  // Initialize aggregated metadata with Czech priority, then Google Books, then Open Library
+  // Initialize aggregated metadata with Czech priority, then Google Books, then Open Library.
+  // Note: Language and Publisher are STRICTLY sourced only from the edition matching the cleanIsbn.
+  const resolvedLanguage = normalizeLanguage(
+    knihovnyData?.language ||
+    (gbData?.language && gbData.language !== 'Neznámý' ? gbData.language : null) ||
+    (olData?.language && olData.language !== 'Neznámý' ? olData.language : null)
+  );
+
   let mergedMeta = {
     title: toDisplayText(knihovnyData?.title || gbData?.title || olData?.title),
     author: toDisplayText(knihovnyData?.author || gbData?.author || olData?.author, 'Neznámý autor'),
@@ -909,21 +1011,22 @@ export async function fetchBookByIsbn(rawIsbn) {
     publisher: toDisplayText(knihovnyData?.publisher || gbData?.publisher || olData?.publisher, 'Neuvedeno'),
     genre: toDisplayText(knihovnyData?.genre || gbData?.genre || olData?.genre, 'Všeobecná literatura'),
     ageGroup: toDisplayText(knihovnyData?.ageGroup || gbData?.ageGroup || olData?.ageGroup, 'Všeobecná veřejnost'),
-    language: toDisplayText(knihovnyData?.language || gbData?.language || olData?.language, 'Čeština'),
+    language: resolvedLanguage,
   };
 
-  // Phase 2: If we have a title (found now or partial), check if author or year or publisher or cover is missing
+  // Phase 2: If we have a title (found now or partial), check if author, year, genre or cover is missing.
+  // CRITICAL REQUIREMENT: Title and author search query MUST NEVER overwrite or supplement
+  // publisher or language from another edition!
   const needsMoreData = !mergedMeta.title ||
     mergedMeta.title === 'Neznámý název' ||
     mergedMeta.author === 'Neznámý autor' ||
-    mergedMeta.year === 'Neuvedeno' ||
-    mergedMeta.publisher === 'Neuvedeno';
+    mergedMeta.year === 'Neuvedeno';
 
   let gbQueryData = null;
   let olQueryData = null;
 
   if (mergedMeta.title && (needsMoreData || (!gbData?.cover && !olData?.cover))) {
-    // 2a. Query Google Books & Open Library by title and author
+    // 2a. Query Google Books & Open Library by title and author for supplemental info (author, year, genre, covers)
     const [gbQResult, olQResult] = await Promise.allSettled([
       fetchGoogleBooksByQuery(mergedMeta.title, mergedMeta.author),
       fetchOpenLibraryByQuery(mergedMeta.title, mergedMeta.author),
@@ -932,18 +1035,18 @@ export async function fetchBookByIsbn(rawIsbn) {
     olQueryData = olQResult.status === 'fulfilled' ? olQResult.value : null;
 
     if (gbQueryData) {
-      mergedMeta = mergeBookMetadata(mergedMeta, gbQueryData);
+      mergedMeta = mergeBookMetadata(mergedMeta, gbQueryData, { isOtherEdition: true });
     }
     if (olQueryData) {
-      mergedMeta = mergeBookMetadata(mergedMeta, olQueryData);
+      mergedMeta = mergeBookMetadata(mergedMeta, olQueryData, { isOtherEdition: true });
     }
 
-    // 2b. If author or key fields are still missing, check title knowledge base (e.g. Lewis, Caesar, Eldredge)
-    const stillNeedsData = mergedMeta.author === 'Neznámý autor' || mergedMeta.year === 'Neuvedeno' || mergedMeta.publisher === 'Neuvedeno';
+    // 2b. If author or year are still missing, check title knowledge base (e.g. Lewis, Caesar, Eldredge)
+    const stillNeedsData = mergedMeta.author === 'Neznámý autor' || mergedMeta.year === 'Neuvedeno';
     if (stillNeedsData) {
       const kbMatch = findTitleInKnowledgeBase(mergedMeta.title);
       if (kbMatch) {
-        mergedMeta = mergeBookMetadata(mergedMeta, kbMatch);
+        mergedMeta = mergeBookMetadata(mergedMeta, kbMatch, { isOtherEdition: true });
       }
     }
   }
@@ -983,7 +1086,7 @@ export async function fetchBookByIsbn(rawIsbn) {
     publisher: mergedMeta.publisher || 'Neuvedeno',
     genre: mergedMeta.genre || 'Všeobecná literatura',
     ageGroup: mergedMeta.ageGroup || 'Všeobecná veřejnost',
-    language: mergedMeta.language || 'Čeština',
+    language: mergedMeta.language || 'Neznámý',
     cover: coverCandidates[0] || null,
     coverCandidates,
     fallbackCover: coverCandidates[1] || coverCandidates[0] || `https://covers.openlibrary.org/b/isbn/${cleanIsbn}-L.jpg`,
