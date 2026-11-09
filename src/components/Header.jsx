@@ -2,22 +2,38 @@ import React from 'react';
 import { Library } from 'lucide-react';
 
 // Clean vector logo mark for BookStache (Book + Moustache motif)
-export function BookStacheLogo({ className = "w-10 h-10", color = "#3D2314" }) {
+export function BookStacheLogo({ className = "w-10 h-10", color = "#3D2314", animated = false }) {
   const maskId = React.useId();
   return (
     <svg className={className} viewBox="-50 -45 160 145" fill="none" xmlns="http://www.w3.org/2000/svg">
       <defs>
         <mask id={maskId} maskUnits="userSpaceOnUse" x="-70" y="-60" width="180" height="150">
-          <image
-            href="./mustacheforbookstache.png"
-            x="-50"
-            y="-45"
-            width="140"
-            height="100"
-            preserveAspectRatio="xMidYMid meet"
-            transform="rotate(-28 20 5)"
-            style={{ filter: "brightness(0) invert(1)" }}
-          />
+          {animated ? (
+            <image
+              href="./mustacheforbookstache.png"
+              x="-50"
+              y="-45"
+              width="140"
+              height="100"
+              preserveAspectRatio="xMidYMid meet"
+              style={{
+                filter: "brightness(0) invert(1)",
+                transformOrigin: "20px 5px",
+                animation: "mustache-tilt 3s ease-in-out infinite"
+              }}
+            />
+          ) : (
+            <image
+              href="./mustacheforbookstache.png"
+              x="-50"
+              y="-45"
+              width="140"
+              height="100"
+              preserveAspectRatio="xMidYMid meet"
+              transform="rotate(-28 20 5)"
+              style={{ filter: "brightness(0) invert(1)" }}
+            />
+          )}
         </mask>
       </defs>
 

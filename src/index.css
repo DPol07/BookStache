@@ -96,3 +96,22 @@ html, body, #root {
 .animate-fadeIn {
   animation: fadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
+
+/* Subtle continuous moustache tilt around center without pause, ±3 deg */
+@keyframes mustache-tilt {
+  0% {
+    transform: rotate(-28deg);
+  }
+  25% {
+    transform: rotate(-31deg);
+  }
+  50% {
+    transform: rotate(-28deg);
+  }
+  75% {
+    transform: rotate(-25deg);
+  }
+  100% {
+    transform: rotate(-28deg);
+  }
+}
