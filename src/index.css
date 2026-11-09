@@ -97,21 +97,21 @@ html, body, #root {
   animation: fadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-/* Subtle continuous moustache tilt around center without pause, ±3 deg */
+/* Continuous moustache tilt around center (±7°) with subtle ~8% elastic scale pop at peaks */
 @keyframes mustache-tilt {
   0% {
-    transform: rotate(-28deg);
+    transform: rotate(-28deg) scale(1);
   }
   25% {
-    transform: rotate(-31deg);
+    transform: rotate(-35deg) scale(1.08);
   }
   50% {
-    transform: rotate(-28deg);
+    transform: rotate(-28deg) scale(1);
   }
   75% {
-    transform: rotate(-25deg);
+    transform: rotate(-21deg) scale(1.08);
   }
   100% {
-    transform: rotate(-28deg);
+    transform: rotate(-28deg) scale(1);
   }
 }
